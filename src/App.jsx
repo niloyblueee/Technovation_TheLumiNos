@@ -119,13 +119,13 @@ function App() {
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/auth" replace />} />
 
-              <Route path="/citizen" element={<CitizenLandingPage />} />
+              
 
 
               <Route path="/admin/events" element={<ArrangeEvents />} />
               <Route path="/admin/admin-dashboard" element={<AdminDashboard />} />
 
-
+              <Route path="/citizen" element={<CitizenLandingPage />} />  
               <Route path="/trackprogress" element={<TrackProgress />} />
               <Route path="/issue-submission" element={<IssueSubmission />} />
               <Route path="/contribution" element={<Contribution />} />

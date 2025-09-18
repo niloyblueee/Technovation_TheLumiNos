@@ -235,6 +235,7 @@ const IssueSubmissionWithMap = () => {
       // Photo is the base64 data URL string (no file name)
       Photo: file ? file : '',
       Emergency: isEmergency,
+      status: 'Pending Review',
     };
 
     setSubmittedData(jsonPayload);

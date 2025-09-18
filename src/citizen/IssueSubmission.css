@@ -1,0 +1,189 @@
+/* General Body and Container Styling */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f3f4f6;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.form-card {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-width: 32rem;
+  width: 100%;
+}
+
+.form-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+}
+
+/* Form Elements */
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  color: #4b5563;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.textarea-field {
+  resize: vertical;
+}
+
+/* Button Group Styling */
+.button-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.button-emergency,
+.button-normal {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+.button-emergency {
+  background-color: #fecaca;
+  color: #dc2626;
+}
+
+.button-emergency.active {
+  background-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.button-emergency:hover:not(.active) {
+  background-color: #fca5a5;
+}
+
+.button-normal {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.button-normal.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.button-normal:hover:not(.active) {
+  background-color: #93c5fd;
+}
+
+/* File Upload */
+.file-upload-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.file-upload-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  background-color: #4f46e5;
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.file-upload-button:hover {
+  background-color: #4338ca;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.file-name {
+  color: #4b5563;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Submit Button */
+.submit-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  background-color: #10b981;
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.submit-button:hover {
+  background-color: #059669;
+}
+
+/* Submitted Data Display */
+.submitted-data-container {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.submitted-data-title {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.submitted-data-code {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  background-color: #d1d5db;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

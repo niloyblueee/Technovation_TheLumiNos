@@ -1,0 +1,42 @@
+.wholeContainer{
+    height: 100vh;
+    width: 100%;
+
+    font-family:sans-serif;
+
+}
+.upperPart{
+    width: 100%;
+    border: 1px solid black;
+    height: 40px;
+    display: flex;
+    color: wheat;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(45deg, rgb(60, 27, 109), rgb(228, 164, 225));
+}
+.mapPortion{
+    height: 600px;
+
+    width: 100%;
+    display: flex;
+    
+    
+}
+.map{
+    height: 600px;
+    border: 2px solid black;
+    width: 70%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+.adminButton{
+display:flex;
+flex-direction: column;
+gap: 50px;
+justify-content: center;
+width: 30%;
+
+}

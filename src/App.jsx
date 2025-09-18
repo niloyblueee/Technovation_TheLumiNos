@@ -11,7 +11,7 @@ import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
 
 
 import ArrangeEvents from './authority/ArrangeEvents.jsx';
-
+import AdminDashboard from './authority/AdminDashboard.jsx';
 import TrackProgress from './citizen/TrackProgress.jsx';
 import IssueSubmission from './citizen/IssueSubmission.jsx';
 import Contribution from './citizen/Contribution.jsx';
@@ -123,6 +123,7 @@ function App() {
 
 
               <Route path="/admin/events" element={<ArrangeEvents />} />
+              <Route path="/admin/admin-dashboard" element={<ArrangeEvents />} />
 
 
               <Route path="/trackprogress" element={<TrackProgress />} />

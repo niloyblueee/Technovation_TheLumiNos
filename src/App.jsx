@@ -7,6 +7,8 @@ import AuthPage from './components/auth/AuthPage';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
+import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
+
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -107,9 +109,10 @@ function App() {
                   </AdminProtectedRoute>
                 }
               />
-
+              
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/auth" replace />} />
+              <Route path="/citizen" element={<CitizenLandingPage />} />
             </Routes>
           </div>
         </Router>

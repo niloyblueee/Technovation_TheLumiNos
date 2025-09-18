@@ -25,7 +25,7 @@ const GovtRewardPage = () => {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>🏆 Admin Reward Dashboard</h1>
+      <h1 className={styles.title}>🏆 Reward Dashboard</h1>
       <table className={styles.table}>
         <thead>
           <tr>

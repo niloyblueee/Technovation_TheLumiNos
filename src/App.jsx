@@ -8,7 +8,7 @@ import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
 import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
-
+import ArrangeEvents from './events/ArrangeEvents.jsx';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -113,6 +113,7 @@ function App() {
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/auth" replace />} />
               <Route path="/citizen" element={<CitizenLandingPage />} />
+              <Route path="/admin/events" element={<ArrangeEvents />} />
             </Routes>
           </div>
         </Router>

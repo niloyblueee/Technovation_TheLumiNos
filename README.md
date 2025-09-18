@@ -1,13 +1,24 @@
 First Time
+
 npm install in one terminal
+
 cd backend and then npm install in another terminal
+
 open xampp, start apache and mysql
+
 create a database called technovation_luminos using php-myadmin or from Shell
 
+
+
 TO RUN
+
 cd backend
+
 npm start
+
 another terminal npm run dev
+
+
 
 
 # Technovation TheLumiNos

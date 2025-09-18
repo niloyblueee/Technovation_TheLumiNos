@@ -12,10 +12,10 @@ const Dashboard = () => {
 
     const features = [
         { id: 'dashboard', name: 'Dashboard', icon: '🏠' },
-        { id: 'feature1', name: 'Student Management', icon: '👥' },
-        { id: 'feature2', name: 'Course Management', icon: '📚' },
-        { id: 'feature3', name: 'Communication Hub', icon: '💬' },
-        { id: 'feature4', name: 'Analytics', icon: '📊' }
+        { id: 'feature1', name: 'Issue Reporting', icon: '🚨' },
+        { id: 'feature2', name: 'Event Management', icon: '🎪' },
+        { id: 'feature3', name: 'Reward System', icon: '🏆' },
+        { id: 'feature4', name: 'Verification Panel', icon: '✅' }
     ];
 
     const renderContent = () => {
@@ -34,11 +34,11 @@ const Dashboard = () => {
                         <div className="dashboard-welcome-content">
                             <div className="welcome-header">
                                 <h1 className="welcome-title">
-                                    <span className="welcome-icon">🎓</span>
+                                    <span className="welcome-icon">🏛️</span>
                                     Welcome to Technovation TheLumiNos!
                                 </h1>
                                 <p className="welcome-subtitle">
-                                    Your comprehensive campus management platform
+                                    Connecting Citizens with Government Authorities for SDG11
                                 </p>
                             </div>
 
@@ -62,13 +62,13 @@ const Dashboard = () => {
                                         </div>
                                         {user.campus_id && (
                                             <div className="user-info-item">
-                                                <span className="info-label">Campus ID:</span>
+                                                <span className="info-label">{user.role === 'admin' ? 'Admin ID:' : 'Citizen ID:'}</span>
                                                 <span className="info-value">{user.campus_id}</span>
                                             </div>
                                         )}
                                         {user.department && (
                                             <div className="user-info-item">
-                                                <span className="info-label">Department:</span>
+                                                <span className="info-label">{user.role === 'admin' ? 'Government Department:' : 'Department:'}</span>
                                                 <span className="info-value">{user.department}</span>
                                             </div>
                                         )}

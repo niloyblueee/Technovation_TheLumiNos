@@ -59,9 +59,9 @@ const validateRegistration = [
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
     body('campus_id').trim().isLength({ min: 8 }).withMessage('Campus ID must be required for users and must be at least 8 characters long'),
-    body('role').isIn(['student', 'manager', 'admin']).withMessage('Invalid role'),
-    // student-only requirements
-    body('department').if(body('role').equals('student')).trim().notEmpty().withMessage(' Department is required for students')
+    body('role').isIn(['citizen', 'admin']).withMessage('Invalid role'),
+    // admin-only requirements
+    body('department').if(body('role').equals('admin')).trim().notEmpty().withMessage('Department is required for government authorities')
 ];
 
 const validateLogin = [
@@ -83,15 +83,15 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
         let { firstName, lastName, email, password, campus_id, department, role } = req.body;
 
         // normalize inputs
-        role = (role || 'student').toLowerCase();
-        if (!['student', 'manager', 'admin'].includes(role)) {
+        role = (role || 'citizen').toLowerCase();
+        if (!['citizen', 'admin'].includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
         }
 
-        // department only required for students
-        if (role === 'student') {
+        // department only required for admins
+        if (role === 'admin') {
             if (!department || !department.trim()) {
-                return res.status(400).json({ message: 'Department is required for students' });
+                return res.status(400).json({ message: 'Department is required for government authorities' });
             }
             department = department.trim();
         }
@@ -128,10 +128,10 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
             [firstName, lastName, email, hashedPassword, campus_id, role, relProfile]
         );
 
-        // Insert student record if user is a student
-        if (role === 'student') {
+        // Insert admin record if user is an admin
+        if (role === 'admin') {
             await req.db.execute(
-                `INSERT INTO students (user_id, department) VALUES (?, ?)`,
+                `INSERT INTO admins (user_id, department) VALUES (?, ?)`,
                 [result.insertId, department]
             );
         }
@@ -146,9 +146,9 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
          u.role,
          u.campus_id,
          u.profileImage,
-         s.department
+         a.department
        FROM users u
-       LEFT JOIN students s ON s.user_id = u.id
+       LEFT JOIN admins a ON a.user_id = u.id
        WHERE u.id = ?`,
             [result.insertId]
         );
@@ -216,11 +216,11 @@ router.post('/login', validateLogin, async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // Get department for students
+        // Get department for admins
         let department = null;
-        if (user.role === 'student') {
+        if (user.role === 'admin') {
             const [[deptRow]] = await req.db.execute(
-                `SELECT department FROM students WHERE user_id = ?`,
+                `SELECT department FROM admins WHERE user_id = ?`,
                 [user.id]
             );
             department = deptRow ? deptRow.department : null;
@@ -293,7 +293,7 @@ router.post('/google', async (req, res) => {
             const [result] = await req.db.execute(
                 `INSERT INTO users (firstName, lastName, email, password, campus_id, role, googleId)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [given_name, family_name, email, 'google_oauth', null, 'student', googleId]
+                [given_name, family_name, email, 'google_oauth', null, 'citizen', googleId]
             );
 
             const [[created]] = await req.db.execute(
@@ -303,11 +303,11 @@ router.post('/google', async (req, res) => {
             user = created;
         }
 
-        // Get department for student users
+        // Get department for admin users
         let department = null;
-        if (user.role === 'student') {
+        if (user.role === 'admin') {
             const [[deptRow]] = await req.db.execute(
-                `SELECT department FROM students WHERE user_id = ?`,
+                `SELECT department FROM admins WHERE user_id = ?`,
                 [user.id]
             );
             department = deptRow ? deptRow.department : null;
@@ -355,11 +355,11 @@ router.get('/me', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Get department for student users
+        // Get department for admin users
         let department = null;
-        if (user.role === 'student') {
+        if (user.role === 'admin') {
             const [[deptRow]] = await req.db.execute(
-                `SELECT department FROM students WHERE user_id = ?`,
+                `SELECT department FROM admins WHERE user_id = ?`,
                 [user.id]
             );
             department = deptRow ? deptRow.department : null;

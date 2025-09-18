@@ -26,36 +26,35 @@ const RegisterForm = () => {
     const navigate = useNavigate();
 
     const departments = [
-        'Computer Science & Engineering',
-        'Electrical & Electronic Engineering',
-        'Mechanical Engineering',
-        'Civil Engineering',
-        'Architecture',
-        'Business Administration',
-        'Economics',
-        'English',
-        'Mathematics',
-        'Physics',
-        'Chemistry',
-        'Biology',
-        'Psychology',
-        'Sociology',
-        'Political Science',
-        'History',
-        'Philosophy',
-        'Fine Arts',
-        'Music',
+        'Fire Department',
+        'Health Department',
+        'Police Department',
+        'Public Works',
+        'Environmental Services',
+        'Transportation',
+        'Housing & Urban Development',
+        'Emergency Management',
+        'Water & Sanitation',
+        'Waste Management',
+        'Parks & Recreation',
+        'City Planning',
+        'Social Services',
+        'Education',
+        'Finance',
+        'Legal Affairs',
+        'Information Technology',
+        'Human Resources',
         'Other'
     ];
 
     const roleIdLabel = (role) => {
         if (role === 'admin') return 'Admin ID';
-        return 'Student ID';
+        return 'Citizen ID';
     };
 
     const roles = [
-        { value: 'student', label: 'Student' },
-        { value: 'admin', label: 'Administrator' }
+        { value: 'citizen', label: 'Citizen' },
+        { value: 'admin', label: 'Government Authority' }
     ];
 
     const handleChange = (e) => {
@@ -181,8 +180,8 @@ const RegisterForm = () => {
                         required
                         aria-label="Select user role"
                     >
-                        <option value="" disabled hidden>User</option>
-                        <optgroup label="User">
+                        <option value="" disabled hidden>Select Role</option>
+                        <optgroup label="User Type">
                             {roles.map(role => (
                                 <option key={role.value} value={role.value}>
                                     {role.label}
@@ -203,7 +202,7 @@ const RegisterForm = () => {
                             name="campus_id"
                             value={formData.campus_id}
                             onChange={handleChange}
-                            placeholder={`Enter your ${roleIdLabel(formData.role || 'student')}`}
+                            placeholder={`Enter your ${roleIdLabel(formData.role || 'citizen')}`}
                             required
                             className="form-input"
                         />
@@ -211,8 +210,8 @@ const RegisterForm = () => {
                 </div>
             )}
 
-            {/* Department (if student) */}
-            {formData.role === 'student' && (
+            {/* Department (if admin) */}
+            {formData.role === 'admin' && (
                 <div className="form-group-signup">
                     <div className="input-wrapper">
                         <FiBookOpen className="input-icon" />
@@ -223,7 +222,7 @@ const RegisterForm = () => {
                             className="form-input"
                             required
                         >
-                            <option value="">Select Department</option>
+                            <option value="">Select Government Department</option>
                             {departments.map(dept => (
                                 <option key={dept} value={dept}>
                                     {dept}

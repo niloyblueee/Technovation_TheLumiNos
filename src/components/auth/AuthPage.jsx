@@ -62,7 +62,7 @@ const AuthPage = () => {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
                         >
-                            Your comprehensive campus social platform
+                            Connecting Citizens with Government Authorities for SDG11
                         </motion.p>
                     </div>
 

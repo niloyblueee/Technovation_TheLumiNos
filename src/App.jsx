@@ -10,7 +10,7 @@ import './App.css';
 import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
 
 
-import ArrangeEvents from './events/ArrangeEvents.jsx';
+import ArrangeEvents from './authority/ArrangeEvents.jsx';
 
 import TrackProgress from './citizen/TrackProgress.jsx';
 import IssueSubmission from './citizen/IssueSubmission.jsx';

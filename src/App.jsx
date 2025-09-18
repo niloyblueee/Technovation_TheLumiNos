@@ -123,7 +123,7 @@ function App() {
 
 
               <Route path="/admin/events" element={<ArrangeEvents />} />
-              <Route path="/admin/admin-dashboard" element={<ArrangeEvents />} />
+              <Route path="/admin/admin-dashboard" element={<AdminDashboard />} />
 
 
               <Route path="/trackprogress" element={<TrackProgress />} />

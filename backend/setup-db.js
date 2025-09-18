@@ -31,8 +31,10 @@ async function setupDatabase() {
         lastName VARCHAR(50) NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        campus_id VARCHAR(50) UNIQUE,
-        role ENUM('citizen', 'admin') DEFAULT 'citizen',
+        national_id VARCHAR(20) UNIQUE,
+        sex ENUM('male', 'female', 'other') NOT NULL,
+        role ENUM('admin', 'govt_authority', 'citizen') DEFAULT 'citizen',
+        status ENUM('active', 'pending', 'rejected') DEFAULT 'active',
         profileImage VARCHAR(255),
         googleId VARCHAR(100) UNIQUE,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -54,55 +56,87 @@ async function setupDatabase() {
     `);
     console.log('✅ Citizens table created');
 
-    // Create admins table
+    // Create government authorities table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS govt_authorities (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        department VARCHAR(100) NOT NULL,
+        region ENUM('dhaka_north', 'dhaka_south') NOT NULL,
+        admin_level ENUM('super', 'regular') DEFAULT 'regular',
+        permissions JSON,
+        approved_by INT,
+        approved_at TIMESTAMP NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `);
+    console.log('✅ Government Authorities table created');
+
+    // Create admins table (fixed single admin)
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS admins (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        department VARCHAR(100),
-        admin_level ENUM('super', 'regular') DEFAULT 'regular',
+        admin_level ENUM('super') DEFAULT 'super',
         permissions JSON,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
     console.log('✅ Admins table created');
 
-    // Insert sample admin user (password: admin123)
+    // Insert fixed admin user (password: admin123)
     const adminPassword = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.';
     await connection.execute(`
-      INSERT IGNORE INTO users (firstName, lastName, email, password, campus_id, role) 
-      VALUES ('Admin', 'User', 'admin@technovation.com', ?, 'ADMIN001', 'admin')
+      INSERT IGNORE INTO users (firstName, lastName, email, password, national_id, sex, role, status) 
+      VALUES ('System', 'Admin', 'admin@technovation.com', ?, 'ADMIN001', 'male', 'admin', 'active')
     `, [adminPassword]);
-    console.log('✅ Sample admin user created (admin@technovation.com / admin123)');
+    console.log('✅ Fixed admin user created (admin@technovation.com / admin123)');
 
     // Insert sample citizen user (password: citizen123)
     await connection.execute(`
-      INSERT IGNORE INTO users (firstName, lastName, email, password, campus_id, role) 
-      VALUES ('John', 'Doe', 'citizen@technovation.com', ?, 'CIT001', 'citizen')
+      INSERT IGNORE INTO users (firstName, lastName, email, password, national_id, sex, role, status) 
+      VALUES ('John', 'Doe', 'citizen@technovation.com', ?, '1234567890123', 'male', 'citizen', 'active')
     `, [adminPassword]);
     console.log('✅ Sample citizen user created (citizen@technovation.com / citizen123)');
 
-    // Insert admin record for the sample admin
+    // Insert sample government authority (pending approval)
     await connection.execute(`
-      INSERT IGNORE INTO admins (user_id, department, admin_level)
-      SELECT id, 'Public Works', 'super' 
+      INSERT IGNORE INTO users (firstName, lastName, email, password, national_id, sex, role, status) 
+      VALUES ('Jane', 'Smith', 'govt@technovation.com', ?, '9876543210987', 'female', 'govt_authority', 'pending')
+    `, [adminPassword]);
+    console.log('✅ Sample government authority created (govt@technovation.com / govt123) - PENDING APPROVAL');
+
+    // Insert admin record for the fixed admin
+    await connection.execute(`
+      INSERT IGNORE INTO admins (user_id, admin_level)
+      SELECT id, 'super' 
       FROM users WHERE email = 'admin@technovation.com'
     `);
-    console.log('✅ Sample admin record created');
+    console.log('✅ Fixed admin record created');
 
     // Insert citizen record for the sample citizen
     await connection.execute(`
       INSERT IGNORE INTO citizens (user_id, address, phone_number)
-      SELECT id, '123 Main Street, City', '+1234567890' 
+      SELECT id, '123 Main Street, Dhaka', '+8801234567890' 
       FROM users WHERE email = 'citizen@technovation.com'
     `);
     console.log('✅ Sample citizen record created');
 
+    // Insert government authority record (pending approval)
+    await connection.execute(`
+      INSERT IGNORE INTO govt_authorities (user_id, department, region)
+      SELECT id, 'Public Works', 'dhaka_north' 
+      FROM users WHERE email = 'govt@technovation.com'
+    `);
+    console.log('✅ Sample government authority record created (pending approval)');
+
     await connection.end();
     console.log('🎉 Database setup completed successfully!');
     console.log('\n📋 Sample accounts:');
-    console.log('   Admin: admin@technovation.com / admin123');
+    console.log('   Admin: admin@technovation.com / admin123 (Fixed)');
     console.log('   Citizen: citizen@technovation.com / citizen123');
+    console.log('   Govt Authority: govt@technovation.com / govt123 (Pending Approval)');
 
   } catch (error) {
     console.error('❌ Database setup failed:', error.message);

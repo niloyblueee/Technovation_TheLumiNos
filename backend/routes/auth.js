@@ -58,10 +58,12 @@ const validateRegistration = [
     body('lastName').trim().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-    body('campus_id').trim().isLength({ min: 8 }).withMessage('Campus ID must be required for users and must be at least 8 characters long'),
-    body('role').isIn(['citizen', 'admin']).withMessage('Invalid role'),
-    // admin-only requirements
-    body('department').if(body('role').equals('admin')).trim().notEmpty().withMessage('Department is required for government authorities')
+    body('national_id').trim().isLength({ min: 10 }).withMessage('National ID must be at least 10 characters long'),
+    body('sex').isIn(['male', 'female', 'other']).withMessage('Invalid sex'),
+    body('role').isIn(['citizen', 'govt_authority']).withMessage('Invalid role'),
+    // govt_authority-only requirements
+    body('department').if(body('role').equals('govt_authority')).trim().notEmpty().withMessage('Department is required for government authorities'),
+    body('region').if(body('role').equals('govt_authority')).isIn(['dhaka_north', 'dhaka_south']).withMessage('Invalid region')
 ];
 
 const validateLogin = [
@@ -72,26 +74,35 @@ const validateLogin = [
 // Register user with profile image upload support
 router.post('/register', uploadProfileImage, validateRegistration, async (req, res) => {
     try {
+        console.log('📥 Registration request received:', JSON.stringify(req.body, null, 2));
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('❌ Validation errors:', errors.array());
             return res.status(400).json({
                 message: 'Validation failed',
                 errors: errors.array()
             });
         }
 
-        let { firstName, lastName, email, password, campus_id, department, role } = req.body;
+        let { firstName, lastName, email, password, confirmPassword, national_id, sex, department, region, role } = req.body;
+
+        // Remove confirmPassword from the data as it's not needed in the backend
+        delete req.body.confirmPassword;
 
         // normalize inputs
         role = (role || 'citizen').toLowerCase();
-        if (!['citizen', 'admin'].includes(role)) {
+        if (!['citizen', 'govt_authority'].includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
         }
 
-        // department only required for admins
-        if (role === 'admin') {
+        // department and region only required for government authorities
+        if (role === 'govt_authority') {
             if (!department || !department.trim()) {
                 return res.status(400).json({ message: 'Department is required for government authorities' });
+            }
+            if (!region) {
+                return res.status(400).json({ message: 'Region is required for government authorities' });
             }
             department = department.trim();
         }
@@ -105,13 +116,13 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
             return res.status(400).json({ message: 'User with this email already exists' });
         }
 
-        // unique campus_id check
-        const [campus_id_rows] = await req.db.execute(
-            'SELECT id FROM users WHERE campus_id = ?',
-            [campus_id]
+        // unique national_id check
+        const [national_id_rows] = await req.db.execute(
+            'SELECT id FROM users WHERE national_id = ?',
+            [national_id]
         );
-        if (campus_id_rows.length > 0) {
-            return res.status(400).json({ message: 'Campus ID must be unique for users' });
+        if (national_id_rows.length > 0) {
+            return res.status(400).json({ message: 'National ID must be unique' });
         }
 
         // hash password
@@ -121,18 +132,27 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
         // Get relative path if user uploaded a profile image
         const relProfile = req.file ? `/uploads/profile/${req.file.filename}` : null;
 
+        // Set status based on role
+        const status = role === 'govt_authority' ? 'pending' : 'active';
+
         // Insert user into database with profile image
         const [result] = await req.db.execute(
-            `INSERT INTO users (firstName, lastName, email, password, campus_id, role, profileImage)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [firstName, lastName, email, hashedPassword, campus_id, role, relProfile]
+            `INSERT INTO users (firstName, lastName, email, password, national_id, sex, role, status, profileImage)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [firstName, lastName, email, hashedPassword, national_id, sex, role, status, relProfile]
         );
 
-        // Insert admin record if user is an admin
-        if (role === 'admin') {
+        // Insert government authority record if user is a government authority
+        if (role === 'govt_authority') {
             await req.db.execute(
-                `INSERT INTO admins (user_id, department) VALUES (?, ?)`,
-                [result.insertId, department]
+                `INSERT INTO govt_authorities (user_id, department, region) VALUES (?, ?, ?)`,
+                [result.insertId, department, region]
+            );
+        } else if (role === 'citizen') {
+            // Insert citizen record
+            await req.db.execute(
+                `INSERT INTO citizens (user_id) VALUES (?)`,
+                [result.insertId]
             );
         }
 
@@ -144,11 +164,14 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
          u.lastName,
          u.email,
          u.role,
-         u.campus_id,
+         u.national_id,
+         u.sex,
+         u.status,
          u.profileImage,
-         a.department
+         ga.department,
+         ga.region
        FROM users u
-       LEFT JOIN admins a ON a.user_id = u.id
+       LEFT JOIN govt_authorities ga ON ga.user_id = u.id
        WHERE u.id = ?`,
             [result.insertId]
         );
@@ -162,15 +185,18 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
 
         // Return success response with user data and token
         return res.status(201).json({
-            message: 'User registered successfully',
-            token,
+            message: role === 'govt_authority' ? 'Registration submitted for approval' : 'User registered successfully',
+            token: role === 'citizen' ? token : null, // Only return token for citizens
             user: {
                 id: user.id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                campus_id: user.campus_id,
+                national_id: user.national_id,
+                sex: user.sex,
+                status: user.status,
                 department: user.department ?? null,
+                region: user.region ?? null,
                 role: user.role,
                 profileImage: user.profileImage || null
             }
@@ -198,7 +224,7 @@ router.post('/login', validateLogin, async (req, res) => {
 
         // Get user by email for password verification
         const [rows] = await req.db.execute(
-            `SELECT id, firstName, lastName, email, password, campus_id, role, createdAt, profileImage
+            `SELECT id, firstName, lastName, email, password, national_id, sex, role, status, createdAt, profileImage
        FROM users
        WHERE email = ?`,
             [email]
@@ -210,20 +236,33 @@ router.post('/login', validateLogin, async (req, res) => {
 
         const user = rows[0];
 
+        // Check if user is active
+        if (user.status !== 'active') {
+            if (user.status === 'pending') {
+                return res.status(401).json({ message: 'Your account is pending admin approval' });
+            } else if (user.status === 'rejected') {
+                return res.status(401).json({ message: 'Your account has been rejected' });
+            }
+        }
+
         // Verify password hash
         const ok = await bcrypt.compare(password, user.password);
         if (!ok) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // Get department for admins
+        // Get department and region for government authorities
         let department = null;
-        if (user.role === 'admin') {
+        let region = null;
+        if (user.role === 'govt_authority') {
             const [[deptRow]] = await req.db.execute(
-                `SELECT department FROM admins WHERE user_id = ?`,
+                `SELECT department, region FROM govt_authorities WHERE user_id = ?`,
                 [user.id]
             );
-            department = deptRow ? deptRow.department : null;
+            if (deptRow) {
+                department = deptRow.department;
+                region = deptRow.region;
+            }
         }
 
         // Generate JWT token
@@ -242,8 +281,11 @@ router.post('/login', validateLogin, async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                campus_id: user.campus_id,
+                national_id: user.national_id,
+                sex: user.sex,
+                status: user.status,
                 department,
+                region,
                 role: user.role,
                 profileImage: user.profileImage || null
             }
@@ -291,9 +333,9 @@ router.post('/google', async (req, res) => {
         } else {
             // Create new user with Google ID
             const [result] = await req.db.execute(
-                `INSERT INTO users (firstName, lastName, email, password, campus_id, role, googleId)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [given_name, family_name, email, 'google_oauth', null, 'citizen', googleId]
+                `INSERT INTO users (firstName, lastName, email, password, national_id, sex, role, googleId)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [given_name, family_name, email, 'google_oauth', null, 'other', 'citizen', googleId]
             );
 
             const [[created]] = await req.db.execute(
@@ -327,7 +369,8 @@ router.post('/google', async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                campus_id: user.campus_id,
+                national_id: user.national_id,
+                sex: user.sex,
                 department,
                 role: user.role,
                 profileImage: user.profileImage || null
@@ -345,7 +388,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     try {
         // Get user data from database
         const [[user]] = await req.db.execute(
-            `SELECT id, firstName, lastName, email, campus_id, role, createdAt, profileImage
+            `SELECT id, firstName, lastName, email, national_id, sex, role, createdAt, profileImage
        FROM users
        WHERE id = ?`,
             [req.user.id]
@@ -371,7 +414,8 @@ router.get('/me', authenticateToken, async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                campus_id: user.campus_id,
+                national_id: user.national_id,
+                sex: user.sex,
                 department,
                 role: user.role,
                 createdAt: user.createdAt,
@@ -432,6 +476,295 @@ router.post('/change-password', authenticateToken, [
     } catch (error) {
         console.error('Change password error:', error);
         res.status(500).json({ message: 'Failed to change password' });
+    }
+});
+
+// Get pending government authority registrations (admin only)
+router.get('/pending-govt-authorities', authenticateToken, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied. Admin role required.' });
+        }
+
+        const [pendingUsers] = await req.db.execute(
+            `SELECT 
+                u.id,
+                u.firstName,
+                u.lastName,
+                u.email,
+                u.national_id,
+                u.sex,
+                u.createdAt,
+                ga.department,
+                ga.region
+            FROM users u
+            JOIN govt_authorities ga ON ga.user_id = u.id
+            WHERE u.role = 'govt_authority' AND u.status = 'pending'
+            ORDER BY u.createdAt ASC`
+        );
+
+        return res.json({
+            message: 'Pending government authorities retrieved successfully',
+            pendingUsers
+        });
+
+    } catch (error) {
+        console.error('Get pending govt authorities error:', error);
+        return res.status(500).json({ message: 'Failed to retrieve pending government authorities' });
+    }
+});
+
+// Approve or reject government authority registration (admin only)
+router.post('/approve-govt-authority/:userId', authenticateToken, [
+    body('action').isIn(['approve', 'reject']).withMessage('Action must be either approve or reject')
+], async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+        }
+
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied. Admin role required.' });
+        }
+
+        const { userId } = req.params;
+        const { action } = req.body;
+
+        // Check if the user exists and is a pending government authority
+        const [users] = await req.db.execute(
+            'SELECT id, role, status FROM users WHERE id = ?',
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = users[0];
+        if (user.role !== 'govt_authority' || user.status !== 'pending') {
+            return res.status(400).json({ message: 'User is not a pending government authority' });
+        }
+
+        // Update user status
+        const newStatus = action === 'approve' ? 'active' : 'rejected';
+        await req.db.execute(
+            'UPDATE users SET status = ? WHERE id = ?',
+            [newStatus, userId]
+        );
+
+        // If approved, update the govt_authorities table with approval info
+        if (action === 'approve') {
+            await req.db.execute(
+                'UPDATE govt_authorities SET approved_by = ?, approved_at = NOW() WHERE user_id = ?',
+                [req.user.id, userId]
+            );
+        }
+
+        return res.json({
+            message: `Government authority ${action}d successfully`,
+            status: newStatus
+        });
+
+    } catch (error) {
+        console.error('Approve govt authority error:', error);
+        return res.status(500).json({ message: 'Failed to process government authority approval' });
+    }
+});
+
+// Get all users (admin only)
+router.get('/all-users', authenticateToken, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied. Admin role required.' });
+        }
+
+        const [users] = await req.db.execute(
+            `SELECT 
+                u.id,
+                u.firstName,
+                u.lastName,
+                u.email,
+                u.national_id,
+                u.sex,
+                u.role,
+                u.status,
+                u.createdAt,
+                u.profileImage,
+                ga.department,
+                ga.region
+            FROM users u
+            LEFT JOIN govt_authorities ga ON ga.user_id = u.id
+            ORDER BY u.createdAt DESC`
+        );
+
+        return res.json({
+            message: 'Users retrieved successfully',
+            users
+        });
+
+    } catch (error) {
+        console.error('Get all users error:', error);
+        return res.status(500).json({ message: 'Failed to retrieve users' });
+    }
+});
+
+// Get admin statistics (admin only)
+router.get('/admin-stats', authenticateToken, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied. Admin role required.' });
+        }
+
+        // Get total users
+        const [totalUsersResult] = await req.db.execute('SELECT COUNT(*) as count FROM users');
+        const totalUsers = totalUsersResult[0].count;
+
+        // Get users by status
+        const [activeUsersResult] = await req.db.execute('SELECT COUNT(*) as count FROM users WHERE status = "active"');
+        const activeUsers = activeUsersResult[0].count;
+
+        const [pendingUsersResult] = await req.db.execute('SELECT COUNT(*) as count FROM users WHERE status = "pending"');
+        const pendingUsers = pendingUsersResult[0].count;
+
+        const [rejectedUsersResult] = await req.db.execute('SELECT COUNT(*) as count FROM users WHERE status = "rejected"');
+        const rejectedUsers = rejectedUsersResult[0].count;
+
+        // Get users by role
+        const [citizensResult] = await req.db.execute('SELECT COUNT(*) as count FROM users WHERE role = "citizen"');
+        const totalCitizens = citizensResult[0].count;
+
+        const [govtAuthResult] = await req.db.execute('SELECT COUNT(*) as count FROM users WHERE role = "govt_authority"');
+        const totalGovtAuthorities = govtAuthResult[0].count;
+
+        const [adminsResult] = await req.db.execute('SELECT COUNT(*) as count FROM users WHERE role = "admin"');
+        const totalAdmins = adminsResult[0].count;
+
+        // Get recent registrations (last 10)
+        const [recentRegistrations] = await req.db.execute(
+            `SELECT 
+                u.id,
+                u.firstName,
+                u.lastName,
+                u.email,
+                u.role,
+                u.status,
+                u.createdAt
+            FROM users u
+            ORDER BY u.createdAt DESC
+            LIMIT 10`
+        );
+
+        return res.json({
+            totalUsers,
+            activeUsers,
+            pendingUsers,
+            rejectedUsers,
+            totalCitizens,
+            totalGovtAuthorities,
+            totalAdmins,
+            recentRegistrations
+        });
+
+    } catch (error) {
+        console.error('Get admin stats error:', error);
+        return res.status(500).json({ message: 'Failed to retrieve admin statistics' });
+    }
+});
+
+// Delete user (admin only)
+router.delete('/users/:userId', authenticateToken, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied. Admin role required.' });
+        }
+
+        const { userId } = req.params;
+
+        // Check if user exists
+        const [users] = await req.db.execute('SELECT id, role FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = users[0];
+
+        // Prevent admin from deleting themselves
+        if (user.id === req.user.id) {
+            return res.status(400).json({ message: 'Cannot delete your own account' });
+        }
+
+        // Prevent deletion of other admins (only allow deletion of citizens and govt_authorities)
+        if (user.role === 'admin') {
+            return res.status(400).json({ message: 'Cannot delete admin accounts' });
+        }
+
+        // Delete user (cascade will handle related records)
+        await req.db.execute('DELETE FROM users WHERE id = ?', [userId]);
+
+        return res.json({
+            message: 'User deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Delete user error:', error);
+        return res.status(500).json({ message: 'Failed to delete user' });
+    }
+});
+
+// Update user status (admin only)
+router.put('/users/:userId/status', authenticateToken, [
+    body('status').isIn(['active', 'pending', 'rejected']).withMessage('Invalid status')
+], async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+        }
+
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied. Admin role required.' });
+        }
+
+        const { userId } = req.params;
+        const { status } = req.body;
+
+        // Check if user exists
+        const [users] = await req.db.execute('SELECT id, role FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = users[0];
+
+        // Prevent admin from changing their own status
+        if (user.id === req.user.id) {
+            return res.status(400).json({ message: 'Cannot change your own status' });
+        }
+
+        // Update user status
+        await req.db.execute('UPDATE users SET status = ? WHERE id = ?', [status, userId]);
+
+        return res.json({
+            message: 'User status updated successfully',
+            status
+        });
+
+    } catch (error) {
+        console.error('Update user status error:', error);
+        return res.status(500).json({ message: 'Failed to update user status' });
     }
 });
 

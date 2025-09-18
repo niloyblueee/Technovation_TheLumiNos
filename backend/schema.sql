@@ -10,8 +10,10 @@ CREATE TABLE IF NOT EXISTS users (
     lastName VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    campus_id VARCHAR(50) UNIQUE,
-    role ENUM('citizen', 'admin') DEFAULT 'citizen',
+    national_id VARCHAR(20) UNIQUE,
+    sex ENUM('male', 'female', 'other') NOT NULL,
+    role ENUM('admin', 'govt_authority', 'citizen') DEFAULT 'citizen',
+    status ENUM('active', 'pending', 'rejected') DEFAULT 'active',
     profileImage VARCHAR(255),
     googleId VARCHAR(100) UNIQUE,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -28,41 +30,67 @@ CREATE TABLE IF NOT EXISTS citizens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Admins table (for government authority-specific information)
+-- Government Authorities table
+CREATE TABLE IF NOT EXISTS govt_authorities (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    department VARCHAR(100) NOT NULL,
+    region ENUM('dhaka_north', 'dhaka_south') NOT NULL,
+    admin_level ENUM('super', 'regular') DEFAULT 'regular',
+    permissions JSON,
+    approved_by INT,
+    approved_at TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Admins table (fixed single admin)
 CREATE TABLE IF NOT EXISTS admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    department VARCHAR(100),
-    admin_level ENUM('super', 'regular') DEFAULT 'regular',
+    admin_level ENUM('super') DEFAULT 'super',
     permissions JSON,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_campus_id ON users(campus_id);
+CREATE INDEX idx_users_national_id ON users(national_id);
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_citizens_user_id ON citizens(user_id);
+CREATE INDEX idx_govt_authorities_user_id ON govt_authorities(user_id);
 CREATE INDEX idx_admins_user_id ON admins(user_id);
 
--- Insert sample admin user (password: admin123)
-INSERT INTO users (firstName, lastName, email, password, campus_id, role) 
-VALUES ('Admin', 'User', 'admin@technovation.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.', 'ADMIN001', 'admin')
+-- Insert fixed admin user (password: admin123)
+INSERT INTO users (firstName, lastName, email, password, national_id, sex, role, status) 
+VALUES ('System', 'Admin', 'admin@technovation.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.', 'ADMIN001', 'male', 'admin', 'active')
 ON DUPLICATE KEY UPDATE email=email;
 
 -- Insert sample citizen user (password: citizen123)
-INSERT INTO users (firstName, lastName, email, password, campus_id, role) 
-VALUES ('John', 'Doe', 'citizen@technovation.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.', 'CIT001', 'citizen')
+INSERT INTO users (firstName, lastName, email, password, national_id, sex, role, status) 
+VALUES ('John', 'Doe', 'citizen@technovation.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.', '1234567890123', 'male', 'citizen', 'active')
 ON DUPLICATE KEY UPDATE email=email;
 
--- Insert admin record for the sample admin
-INSERT INTO admins (user_id, department, admin_level)
-SELECT id, 'Public Works', 'super' 
+-- Insert sample government authority (pending approval)
+INSERT INTO users (firstName, lastName, email, password, national_id, sex, role, status) 
+VALUES ('Jane', 'Smith', 'govt@technovation.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.', '9876543210987', 'female', 'govt_authority', 'pending')
+ON DUPLICATE KEY UPDATE email=email;
+
+-- Insert admin record for the fixed admin
+INSERT INTO admins (user_id, admin_level)
+SELECT id, 'super' 
 FROM users WHERE email = 'admin@technovation.com'
-ON DUPLICATE KEY UPDATE department = department;
+ON DUPLICATE KEY UPDATE admin_level = admin_level;
 
 -- Insert citizen record for the sample citizen
 INSERT INTO citizens (user_id, address, phone_number)
-SELECT id, '123 Main Street, City', '+1234567890' 
+SELECT id, '123 Main Street, Dhaka', '+8801234567890' 
 FROM users WHERE email = 'citizen@technovation.com'
 ON DUPLICATE KEY UPDATE address = address;
+
+-- Insert government authority record (pending approval)
+INSERT INTO govt_authorities (user_id, department, region)
+SELECT id, 'Public Works', 'dhaka_north' 
+FROM users WHERE email = 'govt@technovation.com'
+ON DUPLICATE KEY UPDATE department = department;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import Feature1 from './features/Feature1';
 import Feature2 from './features/Feature2';
 import Feature3 from './features/Feature3';
@@ -8,6 +9,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [activeFeature, setActiveFeature] = useState('dashboard');
 
     const features = [
@@ -60,16 +62,34 @@ const Dashboard = () => {
                                             <span className="info-label">Role:</span>
                                             <span className="info-value role-badge">{user.role}</span>
                                         </div>
-                                        {user.campus_id && (
+                                        {user.national_id && (
                                             <div className="user-info-item">
-                                                <span className="info-label">{user.role === 'admin' ? 'Admin ID:' : 'Citizen ID:'}</span>
-                                                <span className="info-value">{user.campus_id}</span>
+                                                <span className="info-label">National ID:</span>
+                                                <span className="info-value">{user.national_id}</span>
+                                            </div>
+                                        )}
+                                        {user.sex && (
+                                            <div className="user-info-item">
+                                                <span className="info-label">Sex:</span>
+                                                <span className="info-value">{user.sex}</span>
+                                            </div>
+                                        )}
+                                        {user.status && (
+                                            <div className="user-info-item">
+                                                <span className="info-label">Status:</span>
+                                                <span className="info-value status-badge">{user.status}</span>
                                             </div>
                                         )}
                                         {user.department && (
                                             <div className="user-info-item">
-                                                <span className="info-label">{user.role === 'admin' ? 'Government Department:' : 'Department:'}</span>
+                                                <span className="info-label">Department:</span>
                                                 <span className="info-value">{user.department}</span>
+                                            </div>
+                                        )}
+                                        {user.region && (
+                                            <div className="user-info-item">
+                                                <span className="info-label">Region:</span>
+                                                <span className="info-value">{user.region}</span>
                                             </div>
                                         )}
                                     </div>

@@ -142,8 +142,82 @@ const IssueSubmissionWithMap = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  // helpers: read file as dataURL and compress to <= 1MB (approx) using canvas
+  const readFileAsDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onerror = reject;
+      fr.onload = () => resolve(fr.result);
+      fr.readAsDataURL(file);
+    });
+
+  const compressDataUrl = async (dataUrl, mime = 'image/jpeg', maxBytes = 1_000_000) => {
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = rej;
+    });
+
+    // scale down if very large to help meet size target
+    const MAX_DIM = 1600;
+    let { width, height } = img;
+    if (Math.max(width, height) > MAX_DIM) {
+      const ratio = MAX_DIM / Math.max(width, height);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
+
+    // progressively lower quality until under size or minimum quality reached
+    let quality = 0.92;
+    const minQuality = 0.35;
+    while (quality >= minQuality) {
+      const blob = await new Promise((res) => canvas.toBlob(res, mime, quality));
+      if (!blob) break;
+      if (blob.size <= maxBytes || quality <= minQuality) {
+        // convert blob back to dataURL
+        const result = await new Promise((res, rej) => {
+          const fr = new FileReader();
+          fr.onerror = rej;
+          fr.onload = () => res(fr.result);
+          fr.readAsDataURL(blob);
+        });
+        return result;
+      }
+      quality -= 0.08;
+    }
+
+    // fallback: return original
+    return dataUrl;
+  };
+
+  const handleFileChange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+
+    // accept any image MIME
+    if (!f.type || !f.type.startsWith('image/')) {
+      alert('Please upload an image file (any common photo format).');
+      return;
+    }
+
+    try {
+      const originalDataUrl = await readFileAsDataUrl(f);
+      // convert PNG/other -> jpeg for better compression if needed
+      const targetMime = f.type === 'image/jpeg' ? 'image/jpeg' : 'image/jpeg';
+      const compressedDataUrl = await compressDataUrl(originalDataUrl, targetMime, 1_000_000);
+      // store only the data URL string (suitable for storing in MySQL TEXT/BLOB)
+      setFile(compressedDataUrl);
+    } catch (err) {
+      console.error('Image processing failed', err);
+      alert('Failed to process the image. Please try a different file.');
+    }
   };
 
   const handleSubmit = (e) => {
@@ -158,8 +232,8 @@ const IssueSubmissionWithMap = () => {
       Sender: loggedInUserNumber,
       Coordinate: location ? `${location.latitude},${location.longitude}` : '',
       Description: description,
-      Photo: file ? file.name : '',
-      Video: file ? file.name : '',
+      // Photo is the base64 data URL string (no file name)
+      Photo: file ? file : '',
       Emergency: isEmergency,
     };
 
@@ -267,7 +341,7 @@ const IssueSubmissionWithMap = () => {
           </div>
 
           <div className="form-section">
-            <label className="form-label">Photo/Video Evidence</label>
+            <label className="form-label">Photo Evidence</label>
             <div className="file-upload-group">
               <button
                 type="button"
@@ -281,9 +355,15 @@ const IssueSubmissionWithMap = () => {
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden-file-input"
-                accept="image/*,video/*"
+                accept="image/*"
               />
-              {file && <span className="file-name">{file.name}</span>}
+              {file && (
+                <img
+                  src={file}
+                  alt="preview"
+                  style={{ width: 120, height: 'auto', borderRadius: 6, marginLeft: 8 }}
+                />
+              )}
             </div>
           </div>
 

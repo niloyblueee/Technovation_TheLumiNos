@@ -69,7 +69,7 @@ let ArrangeEvents = () => {
           ))}
         </ol>
 
-        <button type="button" className="btn btn-outline-success position-relative">
+        <button type="buttonSuccess" className="btn btn-outline-success position-relative">
           Total Events
           <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
             {tasks.length}

@@ -42,19 +42,117 @@
   box-shadow: 4px 4px 0px 0px #000;
 }
 
-/* Notification icon placeholder */
-.notifications {
-  position: absolute;
+/* Notification wrapper to position menu */
+/* changed to fixed so the badge sits at the top-right of the viewport */
+.notifications-wrapper {
+  position: fixed;
   top: 10px;
   right: 10px;
+  display: inline-block;
+  z-index: 1100;
+}
+
+/* Notification icon placeholder */
+/* Make the button relative inside the fixed wrapper (not absolute) */
+.notifications {
+  position: relative;
+  top: 0;
+  right: 0;
   width: 40px;
   height: 40px;
   border: 2px solid #000;
   border-radius: 5px;
-  transform: rotate(45deg);
+  transform: none;
   box-shadow: 4px 4px 0px 0px #000;
   background-color: #fff;
   cursor: pointer;
+}
+
+/* small unread badge */
+.notif-badge {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 12px;
+  line-height: 18px;
+  border-radius: 9px;
+  background: #e53935;
+  color: #fff;
+  margin-left: 6px;
+  vertical-align: top;
+}
+
+/* dropdown menu */
+.notifications-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 52px; /* below the notification button */
+  width: 320px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+  border-radius: 8px;
+  z-index: 1000;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 2px solid #000;
+}
+
+/* header inside the menu */
+.notifications-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 6px;
+}
+
+/* mark read button small */
+.mark-read-btn {
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* individual notification items */
+.notification-item {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+}
+.notification-item.unread {
+  background: #f6f9ff;
+}
+.notification-item.read {
+  background: transparent;
+}
+.notification-item:hover {
+  background: #eef3ff;
+}
+
+/* title and time */
+.notification-title {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.notification-time {
+  font-size: 12px;
+  color: #666;
+}
+
+/* empty / loading / error states */
+.notifications-empty,
+.notifications-error {
+  padding: 12px;
+  color: #666;
+  text-align: center;
 }
 
 /* Button row container */

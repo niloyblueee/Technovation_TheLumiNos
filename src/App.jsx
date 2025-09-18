@@ -8,7 +8,13 @@ import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
 import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
+<<<<<<< HEAD
 import ArrangeEvents from './events/ArrangeEvents.jsx';
+=======
+import TrackProgress from './citizen/TrackProgress.jsx';
+import IssueSubmission from './citizen/IssueSubmission.jsx';
+import Contribution from './citizen/Contribution.jsx';
+>>>>>>> 63a0a0af67b5e187c61fdf89fe4bf44c28aacf02
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -112,8 +118,16 @@ function App() {
               
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/auth" replace />} />
+
               <Route path="/citizen" element={<CitizenLandingPage />} />
+<<<<<<< HEAD
               <Route path="/admin/events" element={<ArrangeEvents />} />
+=======
+              <Route path="/trackprogress" element={<TrackProgress />} />
+              <Route path="/issue-submission" element={<IssueSubmission />} />
+              <Route path="/contribution" element={<Contribution />} />
+              
+>>>>>>> 63a0a0af67b5e187c61fdf89fe4bf44c28aacf02
             </Routes>
           </div>
         </Router>

@@ -123,8 +123,8 @@ function App() {
               
 
 
-              <Route path="/govt/events" element={<ArrangeEvents />} />
-              <Route path="/govt/govt-dashboard" element={<GovtDashboard />} />
+              <Route path="/govt-events" element={<ArrangeEvents />} />
+              <Route path="/govt-dashboard" element={<GovtDashboard />} />
 
               <Route path="/citizen" element={<CitizenLandingPage />} />  
               <Route path="/trackprogress" element={<TrackProgress />} />

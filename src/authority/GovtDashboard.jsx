@@ -1,6 +1,10 @@
 import React from 'react'
 import styles from './GovtDashboard.module.css'
+import { useNavigate } from 'react-router-dom'
+
 const GovtDashboard = () => {
+  const navigate = useNavigate();
+
   return (
     <div className={styles.wholeContainer}>
       <div className={styles.upperPart}>
@@ -12,7 +16,7 @@ const GovtDashboard = () => {
       </div>
       <div className={styles.adminButton}>
         <button className={` btn btn-danger`}>Problems</button>
-        <button className={` btn btn-outline-success`}>Events</button>
+        <button className={` btn btn-outline-success`}  onClick={() => navigate('/govt-events')}>Events</button>
         <button className={` btn btn-outline-success`}>Reward</button>
       </div>
       </div>

@@ -5,16 +5,17 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthPage from './components/auth/AuthPage';
 import Dashboard from './components/Dashboard';
-import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
+import AdminDashboard from './components/admin/AdminDashboard';
+
 import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
-
-
-import ArrangeEvents from './authority/ArrangeEvents.jsx';
-import AdminDashboard from './authority/AdminDashboard.jsx';
 import TrackProgress from './citizen/TrackProgress.jsx';
 import IssueSubmission from './citizen/IssueSubmission.jsx';
 import Contribution from './citizen/Contribution.jsx';
+
+
+import ArrangeEvents from './authority/ArrangeEvents.jsx';
+import GovtDashboard from './authority/GovtDashboard.jsx';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -119,13 +120,13 @@ function App() {
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/auth" replace />} />
 
-              <Route path="/citizen" element={<CitizenLandingPage />} />
+              
 
 
-              <Route path="/admin/events" element={<ArrangeEvents />} />
-              <Route path="/admin/admin-dashboard" element={<AdminDashboard />} />
+              <Route path="/govt-events" element={<ArrangeEvents />} />
+              <Route path="/govt-dashboard" element={<GovtDashboard />} />
 
-
+              <Route path="/citizen" element={<CitizenLandingPage />} />  
               <Route path="/trackprogress" element={<TrackProgress />} />
               <Route path="/issue-submission" element={<IssueSubmission />} />
               <Route path="/contribution" element={<Contribution />} />

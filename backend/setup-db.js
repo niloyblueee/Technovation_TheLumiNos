@@ -85,6 +85,20 @@ async function setupDatabase() {
     `);
     console.log('✅ Admins table created');
 
+    //Create ISSUES tabble
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS issues (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        phone_number VARCHAR(20),
+        coordinate VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        photo VARCHAR(255),
+        emergency BOOLEAN DEFAULT FALSE,
+        status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
+      )
+    `);
+    console.log('✅ Issues table created');
+
     // Insert fixed admin user (password: admin123)
     const adminPassword = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.';
     await connection.execute(`

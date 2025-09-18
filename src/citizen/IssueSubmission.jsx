@@ -10,6 +10,8 @@ import './IssueSubmission.css';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import axios from 'axios';
+
 
 // Vite-friendly asset imports for Leaflet's default icon images
 // Vite will turn these into proper URLs at build time.
@@ -235,11 +237,28 @@ const IssueSubmissionWithMap = () => {
       // Photo is the base64 data URL string (no file name)
       Photo: file ? file : '',
       Emergency: isEmergency,
-      status: 'Pending Review',
+      status: 'pending',
     };
 
     setSubmittedData(jsonPayload);
     console.log(JSON.stringify(jsonPayload, null, 2));
+
+    const addIssueToServer = async () => {
+      try {
+        const response = await axios.post('http://localhost:5000/api/submit-issue', {
+          phone_number: loggedInUserNumber,
+          coordinate: jsonPayload.Coordinate,
+          description: jsonPayload.Description,
+          photo: jsonPayload.Photo,
+          emergency: jsonPayload.Emergency,
+          status: jsonPayload.status,
+        });
+        console.log('Issue submitted successfully:', response.data);
+      } catch (error) {
+        console.error('Error submitting issueeee:', error);
+      }
+    };
+    addIssueToServer();
   };
 
   return (
@@ -386,5 +405,6 @@ const IssueSubmissionWithMap = () => {
     </div>
   );
 };
+
 
 export default IssueSubmissionWithMap;

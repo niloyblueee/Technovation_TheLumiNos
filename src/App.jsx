@@ -116,21 +116,21 @@ function App() {
                   </AdminProtectedRoute>
                 }
               />
-              
+
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/auth" replace />} />
 
-              
+
 
 
               <Route path="/govt-events" element={<ArrangeEvents />} />
               <Route path="/govt-dashboard" element={<GovtDashboard />} />
 
-              <Route path="/citizen" element={<CitizenLandingPage />} />  
+              <Route path="/citizen" element={<CitizenLandingPage />} />
               <Route path="/trackprogress" element={<TrackProgress />} />
               <Route path="/issue-submission" element={<IssueSubmission />} />
               <Route path="/contribution" element={<Contribution />} />
-              
+
 
             </Routes>
           </div>

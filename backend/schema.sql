@@ -53,6 +53,16 @@ CREATE TABLE IF NOT EXISTS admins (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS issues (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        phone_number VARCHAR(20),
+        coordinate VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        photo VARCHAR(255),
+        emergency BOOLEAN DEFAULT FALSE,
+        status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
+      )
+
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_national_id ON users(national_id);

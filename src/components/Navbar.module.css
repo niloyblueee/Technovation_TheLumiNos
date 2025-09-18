@@ -1,0 +1,11 @@
+.ull{
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    background-color: hsl(0, 0%, 96%);
+    padding: 20px;
+    margin-top: 0px;
+}
+.activeLink{
+    background-color: rgb(233, 147, 147);
+}

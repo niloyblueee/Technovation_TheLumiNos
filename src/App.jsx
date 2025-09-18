@@ -9,10 +9,13 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
 import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
 
+
 import ArrangeEvents from './events/ArrangeEvents.jsx';
+
 import TrackProgress from './citizen/TrackProgress.jsx';
 import IssueSubmission from './citizen/IssueSubmission.jsx';
 import Contribution from './citizen/Contribution.jsx';
+
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading, user } = useAuth();
@@ -118,7 +121,9 @@ function App() {
 
               <Route path="/citizen" element={<CitizenLandingPage />} />
 
+
               <Route path="/admin/events" element={<ArrangeEvents />} />
+
 
               <Route path="/trackprogress" element={<TrackProgress />} />
               <Route path="/issue-submission" element={<IssueSubmission />} />

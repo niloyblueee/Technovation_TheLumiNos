@@ -16,6 +16,8 @@ import Contribution from './citizen/Contribution.jsx';
 
 import ArrangeEvents from './authority/ArrangeEvents.jsx';
 import GovtDashboard from './authority/GovtDashboard.jsx';
+import GovtRewardPage from './authority/GovtRewardPage.jsx';
+
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -125,6 +127,7 @@ function App() {
 
               <Route path="/govt-events" element={<ArrangeEvents />} />
               <Route path="/govt-dashboard" element={<GovtDashboard />} />
+              <Route path="/govt-reward-page" element={<GovtRewardPage />} />
 
               <Route path="/citizen" element={<CitizenLandingPage />} />
               <Route path="/trackprogress" element={<TrackProgress />} />

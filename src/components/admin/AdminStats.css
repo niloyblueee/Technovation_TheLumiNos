@@ -582,3 +582,20 @@
         border: 1px solid #ccc;
     }
 }
+
+.empty-activity {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-activity .empty-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.empty-activity p {
+    margin: 0;
+    font-style: italic;
+}

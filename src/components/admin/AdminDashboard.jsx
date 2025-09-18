@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-// import PendingRequests from './PendingRequests';
-// import UserManagement from './UserManagement';
+import PendingRequests from './PendingRequests';
+import UserManagement from './UserManagement';
 import AdminStats from './AdminStats';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 // import AdminSidebar from './AdminSidebar';
 // import AdminHeader from './AdminHeader';
 import './AdminDashboard.css';
@@ -16,34 +18,106 @@ const AdminDashboard = () => {
         return localStorage.getItem('darkMode') === 'true' || true; // Default to dark mode
     });
 
+    // Shared state for all users and pending requests
+    const [allUsers, setAllUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch all users from backend
+    const fetchAllUsers = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/all-users`);
+            setAllUsers(response.data.users || []);
+        } catch (error) {
+            console.error('Failed to fetch users:', error);
+            toast.error('Failed to load users');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Functions to update user state
+    const updateUserStatus = async (userId, newStatus) => {
+        try {
+            if (newStatus === 'active' || newStatus === 'rejected') {
+                // This is an approval/rejection of a govt authority
+                const action = newStatus === 'active' ? 'approve' : 'reject';
+                await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/approve-govt-authority/${userId}`, {
+                    action: action
+                });
+            } else {
+                // This is a general status update
+                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/users/${userId}/status`, {
+                    status: newStatus
+                });
+            }
+
+            // Update local state
+            setAllUsers(prev => prev.map(user =>
+                user.id === userId ? { ...user, status: newStatus } : user
+            ));
+        } catch (error) {
+            console.error('Failed to update user status:', error);
+            toast.error('Failed to update user status');
+        }
+    };
+
+    const deleteUser = async (userId) => {
+        try {
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/users/${userId}`);
+
+            // Update local state
+            setAllUsers(prev => prev.filter(user => user.id !== userId));
+        } catch (error) {
+            console.error('Failed to delete user:', error);
+            toast.error('Failed to delete user');
+        }
+    };
+
+    // Get pending requests (govt_authority with pending status)
+    const pendingRequests = allUsers.filter(user =>
+        user.role === 'govt_authority' && user.status === 'pending'
+    );
+
+    // Get statistics
+    const stats = {
+        totalUsers: allUsers.length,
+        activeUsers: allUsers.filter(user => user.status === 'active').length,
+        pendingUsers: pendingRequests.length,
+        rejectedUsers: allUsers.filter(user => user.status === 'rejected').length,
+        totalCitizens: allUsers.filter(user => user.role === 'citizen').length,
+        totalGovtAuthorities: allUsers.filter(user => user.role === 'govt_authority').length,
+        totalAdmins: allUsers.filter(user => user.role === 'admin').length,
+        recentRegistrations: allUsers.slice(-5).reverse()
+    };
+
     useEffect(() => {
         localStorage.setItem('darkMode', darkMode);
         document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
     }, [darkMode]);
 
+    useEffect(() => {
+        fetchAllUsers();
+    }, []);
+
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <AdminStats />;
+                return <AdminStats stats={stats} />;
             case 'pending':
                 return (
-                    <div>
-                        <h2>Pending Government Authority Requests</h2>
-                        <p>Review and approve government authority registrations</p>
-                        <div style={{ background: 'var(--bg-primary)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', marginTop: '1rem' }}>
-                            <p>No pending requests at the moment.</p>
-                        </div>
-                    </div>
+                    <PendingRequests
+                        pendingRequests={pendingRequests}
+                        onApprove={(userId) => updateUserStatus(userId, 'active')}
+                        onReject={(userId) => updateUserStatus(userId, 'rejected')}
+                    />
                 );
             case 'users':
                 return (
-                    <div>
-                        <h2>User Management</h2>
-                        <p>Manage all users in the system</p>
-                        <div style={{ background: 'var(--bg-primary)', padding: '2rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', marginTop: '1rem' }}>
-                            <p>User management features coming soon...</p>
-                        </div>
-                    </div>
+                    <UserManagement
+                        users={allUsers}
+                        onUpdateStatus={updateUserStatus}
+                        onDeleteUser={deleteUser}
+                    />
                 );
             default:
                 return <div><h2>Dashboard</h2><p>Default content</p></div>;
@@ -56,6 +130,18 @@ const AdminDashboard = () => {
                 <div className="access-denied-content">
                     <h1>🚫 Access Denied</h1>
                     <p>You need admin privileges to access this dashboard.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="admin-loading">
+                <div className="loading-content">
+                    <div className="loading-spinner"></div>
+                    <h2>Loading Admin Dashboard...</h2>
+                    <p>Fetching user data and statistics</p>
                 </div>
             </div>
         );

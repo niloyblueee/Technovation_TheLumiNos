@@ -12,26 +12,13 @@ import {
 } from 'react-icons/fi';
 import './AdminStats.css';
 
-const AdminStats = () => {
-    // Mock data instead of API calls
-    const stats = {
-        totalUsers: 3,
-        activeUsers: 2,
-        pendingUsers: 1,
-        rejectedUsers: 0,
-        totalCitizens: 1,
-        totalGovtAuthorities: 1,
-        totalAdmins: 1,
-        recentRegistrations: [
-            { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com', role: 'citizen', status: 'active', createdAt: new Date().toISOString() },
-            { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', role: 'govt_authority', status: 'pending', createdAt: new Date().toISOString() }
-        ]
-    };
+const AdminStats = ({ stats }) => {
+    // Use stats from props (real data from backend)
 
     const statCards = [
         {
             title: 'Total Users',
-            value: stats.totalUsers,
+            value: stats?.totalUsers || 0,
             icon: FiUsers,
             color: 'primary',
             change: '+12%',
@@ -39,7 +26,7 @@ const AdminStats = () => {
         },
         {
             title: 'Active Users',
-            value: stats.activeUsers,
+            value: stats?.activeUsers || 0,
             icon: FiCheckCircle,
             color: 'success',
             change: '+8%',
@@ -47,7 +34,7 @@ const AdminStats = () => {
         },
         {
             title: 'Pending Requests',
-            value: stats.pendingUsers,
+            value: stats?.pendingUsers || 0,
             icon: FiClock,
             color: 'warning',
             change: '+3',
@@ -55,7 +42,7 @@ const AdminStats = () => {
         },
         {
             title: 'Rejected Users',
-            value: stats.rejectedUsers,
+            value: stats?.rejectedUsers || 0,
             icon: FiXCircle,
             color: 'danger',
             change: '-2',
@@ -66,24 +53,24 @@ const AdminStats = () => {
     const roleStats = [
         {
             title: 'Citizens',
-            value: stats.totalCitizens,
+            value: stats?.totalCitizens || 0,
             icon: FiUsers,
             color: 'blue',
-            percentage: stats.totalUsers > 0 ? (stats.totalCitizens / stats.totalUsers * 100).toFixed(1) : 0
+            percentage: (stats?.totalUsers || 0) > 0 ? ((stats?.totalCitizens || 0) / (stats?.totalUsers || 1) * 100).toFixed(1) : 0
         },
         {
             title: 'Government Authorities',
-            value: stats.totalGovtAuthorities,
+            value: stats?.totalGovtAuthorities || 0,
             icon: FiHome,
             color: 'green',
-            percentage: stats.totalUsers > 0 ? (stats.totalGovtAuthorities / stats.totalUsers * 100).toFixed(1) : 0
+            percentage: (stats?.totalUsers || 0) > 0 ? ((stats?.totalGovtAuthorities || 0) / (stats?.totalUsers || 1) * 100).toFixed(1) : 0
         },
         {
             title: 'Administrators',
-            value: stats.totalAdmins,
+            value: stats?.totalAdmins || 0,
             icon: FiShield,
             color: 'red',
-            percentage: stats.totalUsers > 0 ? (stats.totalAdmins / stats.totalUsers * 100).toFixed(1) : 0
+            percentage: (stats?.totalUsers || 0) > 0 ? ((stats?.totalAdmins || 0) / (stats?.totalUsers || 1) * 100).toFixed(1) : 0
         }
     ];
 
@@ -180,31 +167,38 @@ const AdminStats = () => {
                         <p>Latest user registrations</p>
                     </div>
                     <div className="activity-list">
-                        {stats.recentRegistrations.map((user, index) => (
-                            <motion.div
-                                key={user.id}
-                                className="activity-item"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 + index * 0.05 }}
-                            >
-                                <div className="activity-avatar">
-                                    <FiUsers />
-                                </div>
-                                <div className="activity-content">
-                                    <h4>{user.firstName} {user.lastName}</h4>
-                                    <p>{user.email}</p>
-                                    <span className="activity-time">
-                                        {formatDate(user.createdAt)}
-                                    </span>
-                                </div>
-                                <div className="activity-status">
-                                    <span className={`status-badge status-${user.status}`}>
-                                        {user.status}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        ))}
+                        {(stats?.recentRegistrations || []).length > 0 ? (
+                            (stats?.recentRegistrations || []).map((user, index) => (
+                                <motion.div
+                                    key={user.id}
+                                    className="activity-item"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 + index * 0.05 }}
+                                >
+                                    <div className="activity-avatar">
+                                        <FiUsers />
+                                    </div>
+                                    <div className="activity-content">
+                                        <h4>{user.firstName} {user.lastName}</h4>
+                                        <p>{user.email}</p>
+                                        <span className="activity-time">
+                                            {formatDate(user.createdAt)}
+                                        </span>
+                                    </div>
+                                    <div className="activity-status">
+                                        <span className={`status-badge status-${user.status}`}>
+                                            {user.status}
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="empty-activity">
+                                <FiUsers className="empty-icon" />
+                                <p>No recent registrations</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,141 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+    FiUsers,
     FiSearch,
     FiFilter,
     FiTrash2,
     FiEdit,
     FiEye,
-    FiUser,
     FiMail,
-    FiMapPin,
+    FiHash,
+    FiUser,
     FiHome,
-    FiRefreshCw,
-    FiX,
-    FiCheck,
-    FiAlertTriangle
+    FiShield,
+    FiCheckCircle,
+    FiXCircle,
+    FiClock
 } from 'react-icons/fi';
-import { toast } from 'react-hot-toast';
-import axios from 'axios';
+import toast from 'react-hot-toast';
 import './UserManagement.css';
 
-const UserManagement = () => {
-    const [users, setUsers] = useState([]);
-    const [filteredUsers, setFilteredUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+const UserManagement = ({ users, onUpdateStatus, onDeleteUser }) => {
+
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [deleting, setDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    const filteredUsers = users.filter(user => {
+        const matchesSearch =
+            user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.national_id.includes(searchTerm);
 
-    useEffect(() => {
-        filterUsers();
-    }, [users, searchTerm, roleFilter, statusFilter]);
+        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+        const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
 
-    const fetchUsers = async () => {
+        return matchesSearch && matchesRole && matchesStatus;
+    });
+
+    const handleDeleteUser = async (userId) => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const response = await axios.get('/api/auth/all-users');
-            setUsers(response.data.users || []);
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            onDeleteUser(userId);
+            setShowDeleteModal(false);
+            setSelectedUser(null);
+            toast.success('User deleted successfully!');
         } catch (error) {
-            console.error('Error fetching users:', error);
-            toast.error('Failed to fetch users');
+            toast.error('Failed to delete user');
         } finally {
             setLoading(false);
         }
     };
 
-    const filterUsers = () => {
-        let filtered = users;
-
-        // Search filter
-        if (searchTerm) {
-            filtered = filtered.filter(user =>
-                user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.national_id?.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        // Role filter
-        if (roleFilter !== 'all') {
-            filtered = filtered.filter(user => user.role === roleFilter);
-        }
-
-        // Status filter
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(user => user.status === statusFilter);
-        }
-
-        setFilteredUsers(filtered);
-    };
-
-    const handleDeleteUser = async () => {
-        if (!selectedUser) return;
-
+    const handleStatusChange = async (userId, newStatus) => {
+        setLoading(true);
         try {
-            setDeleting(true);
-            await axios.delete(`/api/auth/users/${selectedUser.id}`);
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            toast.success('User deleted successfully');
-            fetchUsers();
-            setShowDeleteModal(false);
-            setSelectedUser(null);
+            onUpdateStatus(userId, newStatus);
+            toast.success(`User status updated to ${newStatus}`);
         } catch (error) {
-            console.error('Error deleting user:', error);
-            toast.error('Failed to delete user');
+            toast.error('Failed to update user status');
         } finally {
-            setDeleting(false);
+            setLoading(false);
         }
-    };
-
-    const openDeleteModal = (user) => {
-        setSelectedUser(user);
-        setShowDeleteModal(true);
-    };
-
-    const closeDeleteModal = () => {
-        setShowDeleteModal(false);
-        setSelectedUser(null);
-    };
-
-    const getRoleDisplay = (role) => {
-        const roleMap = {
-            'admin': 'Administrator',
-            'govt_authority': 'Government Authority',
-            'citizen': 'Citizen'
-        };
-        return roleMap[role] || role;
-    };
-
-    const getStatusDisplay = (status) => {
-        const statusMap = {
-            'active': 'Active',
-            'pending': 'Pending',
-            'rejected': 'Rejected'
-        };
-        return statusMap[status] || status;
-    };
-
-    const getStatusColor = (status) => {
-        const colorMap = {
-            'active': 'success',
-            'pending': 'warning',
-            'rejected': 'danger'
-        };
-        return colorMap[status] || 'secondary';
-    };
-
-    const getRegionDisplay = (region) => {
-        if (!region) return 'N/A';
-        return region === 'dhaka_north' ? 'Dhaka North' : 'Dhaka South';
     };
 
     const formatDate = (dateString) => {
@@ -146,21 +81,27 @@ const UserManagement = () => {
         });
     };
 
-    if (loading) {
-        return (
-            <div className="user-management">
-                <div className="management-header">
-                    <h2>User Management</h2>
-                    <div className="loading-skeleton header-skeleton" />
-                </div>
-                <div className="users-table">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="user-row loading-skeleton" />
-                    ))}
-                </div>
-            </div>
-        );
-    }
+    const getRoleIcon = (role) => {
+        switch (role) {
+            case 'admin': return <FiShield className="role-icon admin" />;
+            case 'govt_authority': return <FiHome className="role-icon govt" />;
+            case 'citizen': return <FiUser className="role-icon citizen" />;
+            default: return <FiUser className="role-icon" />;
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'active': return <FiCheckCircle className="status-icon active" />;
+            case 'pending': return <FiClock className="status-icon pending" />;
+            case 'rejected': return <FiXCircle className="status-icon rejected" />;
+            default: return <FiClock className="status-icon" />;
+        }
+    };
+
+    const getRegionLabel = (region) => {
+        return region === 'dhaka_north' ? 'Dhaka North' : 'Dhaka South';
+    };
 
     return (
         <div className="user-management">
@@ -169,24 +110,20 @@ const UserManagement = () => {
                     <h2>User Management</h2>
                     <p>Manage all users in the system</p>
                 </div>
-                <motion.button
-                    className="refresh-btn"
-                    onClick={fetchUsers}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    disabled={loading}
-                >
-                    <FiRefreshCw className={loading ? 'spinning' : ''} />
-                    Refresh
-                </motion.button>
+                <div className="user-stats">
+                    <div className="stat-item">
+                        <FiUsers className="stat-icon" />
+                        <span>{users.length} Total Users</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="filters-section">
-                <div className="search-container">
+            <div className="management-filters">
+                <div className="search-box">
                     <FiSearch className="search-icon" />
                     <input
                         type="text"
-                        placeholder="Search users by name, email, or ID..."
+                        placeholder="Search users by name, email, or national ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
@@ -195,21 +132,20 @@ const UserManagement = () => {
 
                 <div className="filter-controls">
                     <div className="filter-group">
-                        <label>Role</label>
+                        <FiFilter className="filter-icon" />
                         <select
                             value={roleFilter}
                             onChange={(e) => setRoleFilter(e.target.value)}
                             className="filter-select"
                         >
                             <option value="all">All Roles</option>
-                            <option value="admin">Administrator</option>
-                            <option value="govt_authority">Government Authority</option>
-                            <option value="citizen">Citizen</option>
+                            <option value="admin">Administrators</option>
+                            <option value="govt_authority">Government Authorities</option>
+                            <option value="citizen">Citizens</option>
                         </select>
                     </div>
 
                     <div className="filter-group">
-                        <label>Status</label>
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
@@ -224,136 +160,146 @@ const UserManagement = () => {
                 </div>
             </div>
 
-            <div className="users-table-container">
-                <div className="table-header">
-                    <div className="results-info">
-                        <span>
-                            Showing {filteredUsers.length} of {users.length} users
-                        </span>
-                    </div>
-                </div>
-
-                <div className="users-table">
-                    <div className="table-header-row">
-                        <div className="col-user">User</div>
-                        <div className="col-role">Role</div>
-                        <div className="col-status">Status</div>
-                        <div className="col-region">Region</div>
-                        <div className="col-joined">Joined</div>
-                        <div className="col-actions">Actions</div>
-                    </div>
-
-                    <AnimatePresence>
-                        {filteredUsers.map((user, index) => (
-                            <motion.div
-                                key={user.id}
-                                className="user-row"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ delay: index * 0.05 }}
-                                whileHover={{ backgroundColor: 'var(--bg-tertiary)' }}
-                            >
-                                <div className="col-user">
-                                    <div className="user-info">
-                                        <div className="user-avatar">
-                                            <FiUser />
-                                        </div>
-                                        <div className="user-details">
-                                            <h4>{user.firstName} {user.lastName}</h4>
-                                            <p className="user-email">
-                                                <FiMail />
-                                                {user.email}
-                                            </p>
-                                            {user.national_id && (
-                                                <p className="user-id">ID: {user.national_id}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="col-role">
-                                    <span className={`role-badge role-${user.role}`}>
-                                        {getRoleDisplay(user.role)}
-                                    </span>
-                                </div>
-
-                                <div className="col-status">
-                                    <span className={`status-badge status-${getStatusColor(user.status)}`}>
-                                        {getStatusDisplay(user.status)}
-                                    </span>
-                                </div>
-
-                                <div className="col-region">
-                                    <span className="region-info">
-                                        {user.region ? (
-                                            <>
-                                                <FiMapPin />
-                                                {getRegionDisplay(user.region)}
-                                            </>
-                                        ) : (
-                                            'N/A'
-                                        )}
-                                    </span>
-                                    {user.department && (
-                                        <span className="department-info">
-                                            <FiHome />
-                                            {user.department}
-                                        </span>
-                                    )}
-                                </div>
-
-                                <div className="col-joined">
-                                    <span className="join-date">
-                                        {formatDate(user.createdAt)}
-                                    </span>
-                                </div>
-
-                                <div className="col-actions">
-                                    <div className="action-buttons">
-                                        <motion.button
-                                            className="action-btn view-btn"
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            title="View Details"
-                                        >
-                                            <FiEye />
-                                        </motion.button>
-                                        <motion.button
-                                            className="action-btn edit-btn"
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            title="Edit User"
-                                        >
-                                            <FiEdit />
-                                        </motion.button>
-                                        <motion.button
-                                            className="action-btn delete-btn"
-                                            onClick={() => openDeleteModal(user)}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            title="Delete User"
-                                        >
-                                            <FiTrash2 />
-                                        </motion.button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-
-                {filteredUsers.length === 0 && (
+            <div className="users-content">
+                {filteredUsers.length === 0 ? (
                     <motion.div
                         className="empty-state"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
                     >
-                        <div className="empty-icon">👥</div>
+                        <FiUsers className="empty-icon" />
                         <h3>No Users Found</h3>
-                        <p>No users match your current search and filter criteria.</p>
+                        <p>Try adjusting your search or filter criteria</p>
                     </motion.div>
+                ) : (
+                    <div className="users-list">
+                        <AnimatePresence>
+                            {filteredUsers.map((user, index) => (
+                                <motion.div
+                                    key={user.id}
+                                    className="user-card"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    whileHover={{ y: -2 }}
+                                >
+                                    <div className="user-header">
+                                        <div className="user-info">
+                                            <div className="user-avatar">
+                                                {getRoleIcon(user.role)}
+                                            </div>
+                                            <div className="user-details">
+                                                <h3>{user.firstName} {user.lastName}</h3>
+                                                <p className="user-email">
+                                                    <FiMail className="icon" />
+                                                    {user.email}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="user-status">
+                                            <span className={`status-badge ${user.status}`}>
+                                                {getStatusIcon(user.status)}
+                                                {user.status}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="user-details-grid">
+                                        <div className="detail-item">
+                                            <FiHash className="detail-icon" />
+                                            <span className="detail-label">National ID:</span>
+                                            <span className="detail-value">{user.national_id}</span>
+                                        </div>
+
+                                        <div className="detail-item">
+                                            <FiUser className="detail-icon" />
+                                            <span className="detail-label">Sex:</span>
+                                            <span className="detail-value">{user.sex}</span>
+                                        </div>
+
+                                        <div className="detail-item">
+                                            <span className="detail-label">Role:</span>
+                                            <span className="detail-value role-badge">{user.role}</span>
+                                        </div>
+
+                                        <div className="detail-item">
+                                            <span className="detail-label">Joined:</span>
+                                            <span className="detail-value">{formatDate(user.createdAt)}</span>
+                                        </div>
+
+                                        {user.department && (
+                                            <div className="detail-item">
+                                                <span className="detail-label">Department:</span>
+                                                <span className="detail-value">{user.department}</span>
+                                            </div>
+                                        )}
+
+                                        {user.region && (
+                                            <div className="detail-item">
+                                                <span className="detail-label">Region:</span>
+                                                <span className="detail-value">{getRegionLabel(user.region)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="user-actions">
+                                        <motion.button
+                                            className="action-btn view-btn"
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                        >
+                                            <FiEye />
+                                            View
+                                        </motion.button>
+
+                                        {user.role !== 'admin' && (
+                                            <>
+                                                {user.status === 'pending' && (
+                                                    <>
+                                                        <motion.button
+                                                            className="action-btn approve-btn"
+                                                            onClick={() => handleStatusChange(user.id, 'active')}
+                                                            disabled={loading}
+                                                            whileHover={{ scale: 1.05 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                        >
+                                                            <FiCheckCircle />
+                                                            Approve
+                                                        </motion.button>
+                                                        <motion.button
+                                                            className="action-btn reject-btn"
+                                                            onClick={() => handleStatusChange(user.id, 'rejected')}
+                                                            disabled={loading}
+                                                            whileHover={{ scale: 1.05 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                        >
+                                                            <FiXCircle />
+                                                            Reject
+                                                        </motion.button>
+                                                    </>
+                                                )}
+
+                                                <motion.button
+                                                    className="action-btn delete-btn"
+                                                    onClick={() => {
+                                                        setSelectedUser(user);
+                                                        setShowDeleteModal(true);
+                                                    }}
+                                                    disabled={loading}
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                >
+                                                    <FiTrash2 />
+                                                    Delete
+                                                </motion.button>
+                                            </>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
                 )}
             </div>
 
@@ -365,58 +311,50 @@ const UserManagement = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={closeDeleteModal}
+                        onClick={() => setShowDeleteModal(false)}
                     >
                         <motion.div
-                            className="modal-content delete-modal"
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="delete-modal"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="modal-header">
-                                <div className="warning-icon">
-                                    <FiAlertTriangle />
-                                </div>
                                 <h3>Delete User</h3>
-                                <button className="close-btn" onClick={closeDeleteModal}>
-                                    <FiX />
-                                </button>
+                                <p>Are you sure you want to delete this user? This action cannot be undone.</p>
                             </div>
 
-                            <div className="modal-body">
-                                <p>
-                                    Are you sure you want to delete{' '}
-                                    <strong>{selectedUser.firstName} {selectedUser.lastName}</strong>?
-                                </p>
-                                <p className="warning-text">
-                                    This action cannot be undone. All user data will be permanently removed.
-                                </p>
+                            <div className="modal-content">
+                                <div className="user-preview">
+                                    <div className="user-avatar">
+                                        {getRoleIcon(selectedUser.role)}
+                                    </div>
+                                    <div className="user-info">
+                                        <h4>{selectedUser.firstName} {selectedUser.lastName}</h4>
+                                        <p>{selectedUser.email}</p>
+                                        <span className="role-badge">{selectedUser.role}</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="modal-footer">
+                            <div className="modal-actions">
                                 <motion.button
                                     className="modal-btn cancel-btn"
-                                    onClick={closeDeleteModal}
+                                    onClick={() => setShowDeleteModal(false)}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <FiX />
                                     Cancel
                                 </motion.button>
                                 <motion.button
                                     className="modal-btn delete-btn"
-                                    onClick={handleDeleteUser}
-                                    disabled={deleting}
+                                    onClick={() => handleDeleteUser(selectedUser.id)}
+                                    disabled={loading}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    {deleting ? (
-                                        <FiRefreshCw className="spinning" />
-                                    ) : (
-                                        <FiTrash2 />
-                                    )}
-                                    {deleting ? 'Deleting...' : 'Delete User'}
+                                    {loading ? 'Deleting...' : 'Delete User'}
                                 </motion.button>
                             </div>
                         </motion.div>

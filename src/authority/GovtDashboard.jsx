@@ -1,10 +1,10 @@
 import React from 'react'
-import styles from './AdminDashboard.module.css'
-const AdminDashboard = () => {
+import styles from './GovtDashboard.module.css'
+const GovtDashboard = () => {
   return (
     <div className={styles.wholeContainer}>
       <div className={styles.upperPart}>
-        <h1>Admin Panel</h1>
+        <h1>Government Dashboard</h1>
       </div>
       <div className={styles.mapPortion}>
         <div className={styles.map}>
@@ -21,4 +21,4 @@ const AdminDashboard = () => {
   )
 }
 
-export default AdminDashboard
+export default GovtDashboard;

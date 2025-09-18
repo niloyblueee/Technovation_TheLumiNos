@@ -345,11 +345,11 @@ router.post('/google', async (req, res) => {
             user = created;
         }
 
-        // Get department for admin users
+        // Get department for govt_authority users (admins don't have departments)
         let department = null;
-        if (user.role === 'admin') {
+        if (user.role === 'govt_authority') {
             const [[deptRow]] = await req.db.execute(
-                `SELECT department FROM admins WHERE user_id = ?`,
+                `SELECT department FROM govt_authorities WHERE user_id = ?`,
                 [user.id]
             );
             department = deptRow ? deptRow.department : null;
@@ -398,11 +398,11 @@ router.get('/me', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Get department for admin users
+        // Get department for govt_authority users (admins don't have departments)
         let department = null;
-        if (user.role === 'admin') {
+        if (user.role === 'govt_authority') {
             const [[deptRow]] = await req.db.execute(
-                `SELECT department FROM admins WHERE user_id = ?`,
+                `SELECT department FROM govt_authorities WHERE user_id = ?`,
                 [user.id]
             );
             department = deptRow ? deptRow.department : null;

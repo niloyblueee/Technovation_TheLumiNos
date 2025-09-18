@@ -5,12 +5,23 @@ import Feature1 from './features/Feature1';
 import Feature2 from './features/Feature2';
 import Feature3 from './features/Feature3';
 import Feature4 from './features/Feature4';
+import GovernmentDashboard from './GovernmentDashboard';
+import CitizenDashboard from './CitizenDashboard';
 import './Dashboard.css';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [activeFeature, setActiveFeature] = useState('dashboard');
+
+    // Route to appropriate dashboard based on user role
+    if (user?.role === 'govt_authority') {
+        return <GovernmentDashboard />;
+    }
+
+    if (user?.role === 'citizen') {
+        return <CitizenDashboard />;
+    }
 
     const features = [
         { id: 'dashboard', name: 'Dashboard', icon: '🏠' },

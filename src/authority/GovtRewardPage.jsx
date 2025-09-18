@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import styles from "./AdminRewardPage.module.css";
+import styles from "./GovtRewardPage.module.css";
 
-const AdminRewardPage = () => {
+const GovtRewardPage = () => {
 
   const [citizens, setCitizens] = useState([
     { id: 1, name: "Rahim Uddin", points: 2500 },
@@ -57,4 +57,4 @@ const AdminRewardPage = () => {
   );
 };
 
-export default AdminRewardPage;
+export default GovtRewardPage;

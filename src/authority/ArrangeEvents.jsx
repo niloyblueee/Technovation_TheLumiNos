@@ -15,7 +15,7 @@ let ArrangeEvents = () => {
   let [newDate, setNewDate] = useState("");
   let [newTime, setNewTime] = useState("");
   let [newDescription, setNewDescription] = useState("");
-  let [newStatus, setNewStatus] = useState("upcoming");
+  let [newDuration, setNewDuration] = useState("");
   let [loading, setLoading] = useState(false);
   let [error, setError] = useState(null);
 
@@ -40,6 +40,7 @@ let ArrangeEvents = () => {
           time: e.time,
           description: e.description,
           status: e.status,
+          duration_minutes: e.duration_minutes,
           createdAt: e.createdAt,
         }));
         setTasks(items);
@@ -54,7 +55,7 @@ let ArrangeEvents = () => {
 
   let addTask = async (event) => {
     event.preventDefault();
-    if (newTask.trim() === "" || !newDate || !newTime) return;
+    if (newTask.trim() === "" || !newDate || !newTime || !newDuration) return;
     try {
       const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const payload = {
@@ -62,7 +63,7 @@ let ArrangeEvents = () => {
         date: newDate,
         time: newTime,
         description: newDescription,
-        status: newStatus,
+        duration_minutes: Number(newDuration),
       };
       const { data } = await axios.post(`${base}/api/events`, payload);
       const e = data.event;
@@ -73,6 +74,7 @@ let ArrangeEvents = () => {
         time: e.time,
         description: e.description,
         status: e.status,
+        duration_minutes: e.duration_minutes,
         createdAt: e.createdAt,
       };
       // newest on top (API already returns newest first, but ensure optimistic insert at top)
@@ -81,7 +83,7 @@ let ArrangeEvents = () => {
       setNewDate("");
       setNewTime("");
       setNewDescription("");
-      setNewStatus("upcoming");
+      setNewDuration("");
     } catch (e) {
       alert(e.response?.data?.message || 'Failed to create event. You may need to log in as authority/admin.');
     }
@@ -111,11 +113,13 @@ let ArrangeEvents = () => {
             value={newDescription}
             onChange={handleDescriptionChange}
           />
-          <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
-            <option value="upcoming">Upcoming</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="past">Past</option>
-          </select>
+          <input
+            type="number"
+            min="1"
+            placeholder="Duration (minutes)"
+            value={newDuration}
+            onChange={(e) => setNewDuration(e.target.value)}
+          />
           <button className="add-button btn btn-success" type="submit">
             Add <IoMdAdd />
           </button>
@@ -132,6 +136,7 @@ let ArrangeEvents = () => {
                 <p><BsCalendarDate /> <b>Date:</b> {task.date}</p>
                 <p><AiOutlineClockCircle /> <b>Time:</b> {task.time}</p>
                 <p><BiDetail /> <b>Description:</b> {task.description}</p>
+                <p><b>Duration:</b> {task.duration_minutes} min</p>
                 <p>
                   <b>Status:</b>{' '}
                   <span className={`status-pill status-${task.status || 'upcoming'}`}>

@@ -169,9 +169,9 @@ const IssueSubmissionWithMap = () => {
     const MAX_DIM = 1600;
     let { width, height } = img;
     if (Math.max(width, height) > MAX_DIM) {
-      const ratio = MAX_DIM / Math.max(width, height);
-      width = Math.round(width * ratio);
-      height = Math.round(height * ratio);
+      //const ratio = MAX_DIM / Math.max(width, height);
+      width = 300;
+      height = 400;
     }
 
     const canvas = document.createElement('canvas');

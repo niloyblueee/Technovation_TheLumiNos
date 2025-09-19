@@ -15,7 +15,7 @@ const GovtDashboard = () => {
         <h1>Map</h1>
       </div>
       <div className={styles.adminButton}>
-        <button className={` btn btn-danger`}>Problems</button>
+        <button className={` btn btn-danger`} onClick={() => navigate('/govt-problem-page')} >Problems</button>
         <button className={` btn btn-outline-success`}  onClick={() => navigate('/govt-events')}>Events</button>
         <button className={` btn btn-outline-success`} onClick={() => navigate('/govt-reward-page')} >Reward</button>
       </div>

@@ -108,6 +108,20 @@ async function setupDatabase() {
     `);
     console.log('✅ Issues table created');
 
+    // Create events table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS events (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_name VARCHAR(255) NOT NULL,
+        date DATE NOT NULL,
+        time TIME NOT NULL,
+        description TEXT,
+        status ENUM('upcoming', 'ongoing', 'past') NOT NULL DEFAULT 'upcoming',
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Events table created');
+
     // Insert fixed admin user (password: admin123)
     const adminPassword = '$2b$12$/q8ieN3O2vmWEY/Uwh0uX.tD6sZHGSrOzhGtbNdRtAUnYNiAoPEZe';
     await connection.execute(`

@@ -37,7 +37,8 @@ async function setupDatabase() {
         profileImage VARCHAR(255),
         googleId VARCHAR(100) UNIQUE,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        reward_points INT DEFAULT 0
       )
     `);
     console.log('✅ Users table created');

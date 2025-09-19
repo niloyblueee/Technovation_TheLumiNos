@@ -170,6 +170,7 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
                  u.role,
                  u.status,
                  u.profileImage,
+                 u.reward_point,
                  ga.department,
                  ga.region
              FROM users u
@@ -201,7 +202,8 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
                 region: user.region ?? null,
                 role: user.role,
                 phone_number: user.phone_number,
-                profileImage: user.profileImage || null
+                profileImage: user.profileImage || null,
+                reward_points: user.reward_point ?? 0
             }
         });
 
@@ -233,7 +235,7 @@ router.post('/login', async (req, res) => {
 
         // Get user by email or phone_number
         const [rows] = await req.db.execute(
-            `SELECT id, firstName, lastName, email, password, national_id, sex, phone_number, role, status, createdAt, profileImage
+            `SELECT id, firstName, lastName, email, password, national_id, sex, phone_number, role, status, createdAt, profileImage, reward_point
        FROM users
        WHERE email = ? OR phone_number = ?`,
             [email || '', phone_number || '']
@@ -297,7 +299,8 @@ router.post('/login', async (req, res) => {
                 department,
                 region,
                 role: user.role,
-                profileImage: user.profileImage || null
+                profileImage: user.profileImage || null,
+                reward_points: user.reward_point ?? 0
             }
         });
 
@@ -384,7 +387,8 @@ router.post('/google', async (req, res) => {
                 phone_number: user.phone_number || null,
                 department,
                 role: user.role,
-                profileImage: user.profileImage || null
+                profileImage: user.profileImage || null,
+                reward_points: user.reward_point ?? 0
             }
         });
 
@@ -399,7 +403,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     try {
         // Get user data from database
         const [[user]] = await req.db.execute(
-            `SELECT id, firstName, lastName, email, national_id, sex, phone_number, role, createdAt, profileImage
+            `SELECT id, firstName, lastName, email, national_id, sex, phone_number, role, createdAt, profileImage, reward_point
        FROM users
        WHERE id = ?`,
             [req.user.id]
@@ -431,7 +435,8 @@ router.get('/me', authenticateToken, async (req, res) => {
                 department,
                 role: user.role,
                 createdAt: user.createdAt,
-                profileImage: user.profileImage || null
+                profileImage: user.profileImage || null,
+                reward_points: user.reward_point ?? 0
             }
         });
 

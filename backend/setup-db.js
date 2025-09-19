@@ -5,29 +5,24 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 async function setupDatabase() {
-  console.log('🗄️  Setting up database...');
+    console.log('🗄️  Setting up database...');
+    let connection;
+    try {
+        connection = await mysql.createConnection({
+            // If you use DB_URL:
+            uri: process.env.DB_URL, // mysql2 supports "uri" option
+            // OR use individual vars:
+            host: process.env.DB_HOST,
+            port: process.env.DB_PORT,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME
+        });
 
-  try {
-    // Connect to MySQL without specifying a database
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-    });
+        console.log('✅ Connected to Railway public MySQL');
 
-    console.log('✅ Connected to MySQL server');
-
-    // Create database if it doesn't exist
-    const dbName = process.env.DB_NAME || 'technovation_luminos';
-    await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    console.log('✅ Database created/verified');
-
-    // Use the database
-    await connection.query(`USE \`${dbName}\``);
-    console.log('✅ Using database');
-
-    // Create users table
-    await connection.execute(`
+        // Create users table
+        await connection.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         firstName VARCHAR(50) NOT NULL,
@@ -45,10 +40,10 @@ async function setupDatabase() {
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ Users table created');
+        console.log('✅ Users table created');
 
-    // Create citizens table
-    await connection.execute(`
+        // Create citizens table
+        await connection.execute(`
       CREATE TABLE IF NOT EXISTS citizens (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -57,10 +52,10 @@ async function setupDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
-    console.log('✅ Citizens table created');
+        console.log('✅ Citizens table created');
 
-    // Create government authorities table
-    await connection.execute(`
+        // Create government authorities table
+        await connection.execute(`
       CREATE TABLE IF NOT EXISTS govt_authorities (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -74,10 +69,10 @@ async function setupDatabase() {
         FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
       )
     `);
-    console.log('✅ Government Authorities table created');
+        console.log('✅ Government Authorities table created');
 
-    // Create admins table (fixed single admin)
-    await connection.execute(`
+        // Create admins table (fixed single admin)
+        await connection.execute(`
       CREATE TABLE IF NOT EXISTS admins (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -86,50 +81,55 @@ async function setupDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
-    console.log('✅ Admins table created');
+        console.log('✅ Admins table created');
 
-    // Insert fixed super admin record
-    await connection.execute(`
+        // Insert fixed super admin record
+        await connection.execute(`
       INSERT INTO admins(user_id, admin_level)
       SELECT id, 'super' 
       FROM users WHERE email = 'admin@technovation.com'
       ON DUPLICATE KEY UPDATE admin_level = admin_level;
     `);
-    //Create ISSUES tabble
-    await connection.execute(`
+
+        // Create ISSUES table
+        await connection.execute(`
       CREATE TABLE IF NOT EXISTS issues(
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      phone_number VARCHAR(20),
-      coordinate VARCHAR(255) NOT NULL,
-      description TEXT NOT NULL,
-      photo VARCHAR(255),
-      emergency BOOLEAN DEFAULT FALSE,
-      status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
-    )
-      `);
-    console.log('✅ Issues table created');
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        phone_number VARCHAR(20),
+        coordinate VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        photo VARCHAR(255),
+        emergency BOOLEAN DEFAULT FALSE,
+        status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
+      )
+    `);
+        console.log('✅ Issues table created');
 
-    // Insert fixed admin user (password: admin123)
-    const adminPassword = '$2b$12$/q8ieN3O2vmWEY/Uwh0uX.tD6sZHGSrOzhGtbNdRtAUnYNiAoPEZe';
-    await connection.execute(`
+        // Insert fixed admin user (password: admin123)
+        const adminPassword = '$2b$12$/q8ieN3O2vmWEY/Uwh0uX.tD6sZHGSrOzhGtbNdRtAUnYNiAoPEZe';
+        await connection.execute(`
       INSERT IGNORE INTO users(firstName, lastName, email, password, national_id, sex, phone_number, role, status)
-    VALUES('System', 'Admin', 'admin@technovation.com', ?, 'ADMIN001', 'male', '01300000000', 'admin', 'active')
-      `, [adminPassword]);
-    console.log('✅ Fixed admin user created (admin@technovation.com / admin123)');
+      VALUES('System', 'Admin', 'admin@technovation.com', ?, 'ADMIN001', 'male', '01300000000', 'admin', 'active')
+    `, [adminPassword]);
+        console.log('✅ Fixed admin user created (admin@technovation.com / admin123)');
 
-
-
-    await connection.end();
-    console.log('🎉 Database setup completed successfully!');
-    console.log('\n📋 Sample accounts:');
-    console.log('   Admin: admin@technovation.com / admin123 (Fixed)');
-    console.log('   Citizen: citizen@technovation.com / citizen123');
-    console.log('   Govt Authority: govt@technovation.com / govt123 (Pending Approval)');
-
-  } catch (error) {
-    console.error('❌ Database setup failed:', error.message);
-    process.exit(1);
-  }
+        console.log('🎉 Database setup completed successfully!');
+        console.log('\n📋 Sample accounts:');
+        console.log('   Admin: admin@technovation.com / admin123 (Fixed)');
+        console.log('   Citizen: citizen@technovation.com / citizen123');
+        console.log('   Govt Authority: govt@technovation.com / govt123 (Pending Approval)');
+    } catch (error) {
+        console.error('❌ Database setup failed:', error.message);
+        process.exit(1);
+    } finally {
+        if (connection && connection.end) {
+            try {
+                await connection.end();
+            } catch (e) {
+                // ignore close errors
+            }
+        }
+    }
 }
 
 setupDatabase();

@@ -1,16 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TrackProgress.css';
 
 function TrackProgress() {
-  // Later will fetch from backend
-  const [problems] = useState([
-    { id: 1, title: 'Fire Issued', status: 'Completed' },
-    { id: 2, title: 'Road Block issued', status: 'On Progress' },
-    { id: 3, title: 'Phone Stolen', status: 'Pending Review' },
-    { id: 4, title: 'Drain Blockage', status: 'On Progress' },
-    {id: 5 ,title: 'Brain Blockage', status: 'Completed'  },
-    {id: 6, title: 'Ass Blockage', status: 'On Progress' }
-  ]);
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const controller = new AbortController();
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const url = `${base.replace(/\/$/, '')}/api/issues`;
+        const res = await fetch(url, { signal: controller.signal, credentials: 'include' });
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const data = await res.json();
+        if (mounted) {
+          // map backend issues to UI shape: id, title, status
+          const arr = Array.isArray(data) ? data : [];
+          // sort newest first by id (assuming auto-increment)
+          arr.sort((a, b) => (b.id || 0) - (a.id || 0));
+          const mapped = arr.map(i => {
+            const rawStatus = (i.status || '').toLowerCase();
+            let statusLabel = 'Pending';
+            if (rawStatus.includes('progress') || rawStatus.includes('in_progress') || rawStatus.includes('in-progress')) statusLabel = 'On Progress';
+            else if (rawStatus.includes('resolve') || rawStatus.includes('complete')) statusLabel = 'Completed';
+            else if (rawStatus.includes('reject')) statusLabel = 'Rejected';
+            else if (rawStatus.includes('pending')) statusLabel = 'Pending';
+
+            return {
+              id: i.id,
+              title: i.description ? (i.description.length > 60 ? i.description.slice(0, 57) + '...' : i.description) : `Issue ${i.id}`,
+              status: statusLabel
+            };
+          });
+          setProblems(mapped);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') setError(err.message || 'Failed to load issues');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { mounted = false; controller.abort(); };
+  }, []);
 
   // Return a CSS class name for the badge based on status (case-insensitive)
   const getStatusClass = (status) => {
@@ -31,6 +70,14 @@ function TrackProgress() {
             <div className="tp-header-cell">Problems</div>
             <div className="tp-header-cell">Status</div>
           </div>
+
+          {loading && (
+            <div className="tp-loading">Loading problems...</div>
+          )}
+
+          {error && (
+            <div className="tp-error">Error: {error}</div>
+          )}
 
           {problems.map((problem) => (
             <div key={problem.id} className="tp-row">

@@ -58,6 +58,7 @@ const validateRegistration = [
     body('lastName').trim().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    body('phone_number').trim().isLength({ min: 6 }).withMessage('Phone number is required'),
     body('national_id').trim().isLength({ min: 10 }).withMessage('National ID must be at least 10 characters long'),
     body('sex').isIn(['male', 'female', 'other']).withMessage('Invalid sex'),
     body('role').isIn(['citizen', 'govt_authority']).withMessage('Invalid role'),
@@ -206,6 +207,17 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
 
     } catch (error) {
         console.error('Registration error:', error);
+        // Handle common SQL errors with clearer messages
+        if (error && error.code === 'ER_BAD_NULL_ERROR') {
+            return res.status(400).json({ message: 'Missing required fields. Please fill all required inputs.' });
+        }
+        if (error && error.code === 'ER_DUP_ENTRY') {
+            const msg = /users\.email/.test(error.message) ? 'Email already in use' : (/users\.national_id/.test(error.message) ? 'National ID already in use' : 'Duplicate entry');
+            return res.status(400).json({ message: msg });
+        }
+        if (error && (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT')) {
+            return res.status(503).json({ message: 'Database temporarily unavailable. Please try again shortly.' });
+        }
         return res.status(500).json({ message: 'Registration failed' });
     }
 });

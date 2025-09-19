@@ -15,8 +15,13 @@ const RegisterForm = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        campus_id: '',
+        national_id: '',
+        sex: '',
+        address: '',
+        phone_number: '',
+        location_coordinates: '',
         department: '',
+        region: '',
         role: '',
     });
     const [showPassword, setShowPassword] = useState(false);
@@ -48,13 +53,14 @@ const RegisterForm = () => {
     ];
 
     const roleIdLabel = (role) => {
-        if (role === 'admin') return 'Admin ID';
-        return 'Citizen ID';
+        if (role === 'admin') return 'Admin National ID';
+        if (role === 'govt_authority') return 'Govt Authority National ID';
+        return 'Citizen National ID';
     };
 
     const roles = [
         { value: 'citizen', label: 'Citizen' },
-        { value: 'admin', label: 'Government Authority' }
+        { value: 'govt_authority', label: 'Government Authority' }
     ];
 
     const handleChange = (e) => {
@@ -71,8 +77,19 @@ const RegisterForm = () => {
         if (formData.password.length < 6) {
             return 'Password must be at least 6 characters long';
         }
-        if (!formData.campus_id) {
-            return 'ID is required';
+        if (!formData.national_id) {
+            return 'National ID is required';
+        }
+        if (!formData.sex) {
+            return 'Sex is required';
+        }
+        if (formData.role === 'citizen') {
+            if (!formData.address) return 'Address is required';
+            if (!formData.phone_number) return 'Phone number is required';
+        }
+        if (formData.role === 'govt_authority') {
+            if (!formData.department) return 'Department is required';
+            if (!formData.region) return 'Region is required';
         }
         return null;
     };
@@ -192,15 +209,15 @@ const RegisterForm = () => {
                 </div>
             </div>
 
-            {/* ID field (shown when a valid role is chosen) */}
+            {/* National ID field (shown when a valid role is chosen) */}
             {formData.role && (
                 <div className="form-group-signup">
                     <div className="input-wrapper">
                         <FiHash className="input-icon" />
                         <input
                             type="text"
-                            name="campus_id"
-                            value={formData.campus_id}
+                            name="national_id"
+                            value={formData.national_id}
                             onChange={handleChange}
                             placeholder={`Enter your ${roleIdLabel(formData.role || 'citizen')}`}
                             required
@@ -209,28 +226,112 @@ const RegisterForm = () => {
                     </div>
                 </div>
             )}
-
-            {/* Department (if admin) */}
-            {formData.role === 'admin' && (
+            {/* Sex field (dropdown) */}
+            {formData.role && (
                 <div className="form-group-signup">
                     <div className="input-wrapper">
-                        <FiBookOpen className="input-icon" />
+                        <FiUser className="input-icon" />
                         <select
-                            name="department"
-                            value={formData.department}
+                            name="sex"
+                            value={formData.sex}
                             onChange={handleChange}
                             className="form-input"
                             required
                         >
-                            <option value="">Select Government Department</option>
-                            {departments.map(dept => (
-                                <option key={dept} value={dept}>
-                                    {dept}
-                                </option>
-                            ))}
+                            <option value="" disabled hidden>Select Sex</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
                 </div>
+            )}
+            {/* Citizen-specific fields */}
+            {formData.role === 'citizen' && (
+                <>
+                    <div className="form-group-signup">
+                        <div className="input-wrapper">
+                            <FiUser className="input-icon" />
+                            <input
+                                type="text"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleChange}
+                                placeholder="Address"
+                                required
+                                className="form-input"
+                            />
+                        </div>
+                    </div>
+                    <div className="form-group-signup">
+                        <div className="input-wrapper">
+                            <FiUser className="input-icon" />
+                            <input
+                                type="text"
+                                name="phone_number"
+                                value={formData.phone_number}
+                                onChange={handleChange}
+                                placeholder="Phone Number"
+                                required
+                                className="form-input"
+                            />
+                        </div>
+                    </div>
+                    <div className="form-group-signup">
+                        <div className="input-wrapper">
+                            <FiUser className="input-icon" />
+                            <input
+                                type="text"
+                                name="location_coordinates"
+                                value={formData.location_coordinates}
+                                onChange={handleChange}
+                                placeholder="Location Coordinates (optional)"
+                                className="form-input"
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Government Authority-specific fields */}
+            {formData.role === 'govt_authority' && (
+                <>
+                    <div className="form-group-signup">
+                        <div className="input-wrapper">
+                            <FiBookOpen className="input-icon" />
+                            <select
+                                name="department"
+                                value={formData.department}
+                                onChange={handleChange}
+                                className="form-input"
+                                required
+                            >
+                                <option value="">Select Government Department</option>
+                                {departments.map(dept => (
+                                    <option key={dept} value={dept}>
+                                        {dept}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="form-group-signup">
+                        <div className="input-wrapper">
+                            <FiUser className="input-icon" />
+                            <select
+                                name="region"
+                                value={formData.region}
+                                onChange={handleChange}
+                                className="form-input"
+                                required
+                            >
+                                <option value="">Select Region</option>
+                                <option value="dhaka_north">Dhaka North</option>
+                                <option value="dhaka_south">Dhaka South</option>
+                            </select>
+                        </div>
+                    </div>
+                </>
             )}
 
             {/* Password Fields */}

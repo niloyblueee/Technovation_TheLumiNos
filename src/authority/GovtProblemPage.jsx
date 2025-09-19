@@ -5,6 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 // ensure default marker icons load correctly with Vite
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
@@ -58,6 +59,7 @@ const GovtProblemPage = () => {
   const [selectedIssue, setSelectedIssue] = useState(null)
   const mapRef = useRef(null)
   const selectedMarkerRef = useRef(null)
+  const navigate = useNavigate()
 
 
   useEffect(() => {
@@ -131,11 +133,11 @@ const GovtProblemPage = () => {
       }
     });
     return null;
-    } 
+  }
   // when a selected issue is set from the list, fly to it and open its popup
   useEffect(() => {
     if (!selectedIssue || !mapRef.current) return;
-      let { latitude, longitude } = selectedIssue;
+    let { latitude, longitude } = selectedIssue;
     latitude = Number(latitude);
     longitude = Number(longitude);
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
@@ -213,23 +215,30 @@ const GovtProblemPage = () => {
 
         <div className={styles.issueList}>
           <h4>Issues & Progress</h4>
-            {issues.map((issue) => (
-              <div
-                className={styles.issueRow}
-                key={issue.id ?? issue.description}
-                onClick={() => setSelectedIssue({ ...issue })}
-                role="button"
-                tabIndex={0}
-                onKeyPress={(e) => { if (e.key === 'Enter') { setSelectedIssue({ ...issue }); } }}
+          {issues.map((issue) => (
+            <div
+              className={styles.issueRow}
+              key={issue.id ?? issue.description}
+              onClick={() => setSelectedIssue({ ...issue })}
+              role="button"
+              tabIndex={0}
+              onKeyPress={(e) => { if (e.key === 'Enter') { setSelectedIssue({ ...issue }); } }}
+            >
+              <button className={`${styles.listBtn} btn btn-outline-danger`} aria-label={`Issue ${issue.id}`}>
+                {issue.description ? (issue.description.length > 60 ? issue.description.slice(0, 57) + '...' : issue.description) : `Issue ${issue.id}`}
+              </button>
+              <span className={styles.progressText}>
+                {issue.status || 'Status unknown'}
+              </span>
+              <button
+                className="btn btn-sm btn-primary"
+                style={{ marginLeft: 8 }}
+                onClick={(e) => { e.stopPropagation(); navigate(`/govt-verify/${issue.id}`); }}
               >
-                <button className={`${styles.listBtn} btn btn-outline-danger`} aria-label={`Issue ${issue.id}`}>
-                  {issue.description ? (issue.description.length > 60 ? issue.description.slice(0, 57) + '...' : issue.description) : `Issue ${issue.id}`}
-                </button>
-                <span className={styles.progressText}>
-                  {issue.status || 'Status unknown'}
-                </span>
-              </div>
-            ))}
+                Verify
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>

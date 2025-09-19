@@ -18,6 +18,7 @@ import ArrangeEvents from './authority/ArrangeEvents.jsx';
 import GovtDashboard from './authority/GovtDashboard.jsx';
 import GovtRewardPage from './authority/GovtRewardPage.jsx';
 import GovtProblemPage from './authority/GovtProblemPage.jsx';
+import IssueVerification from './authority/IssueVerification.jsx';
 
 
 // Protected Route component
@@ -139,12 +140,20 @@ function App() {
               <Route path="/govt-dashboard" element={<GovtDashboard />} />
               <Route path="/govt-reward-page" element={<GovtRewardPage />} />
               <Route path="/govt-problem-page" element={<GovtProblemPage />} />
+              <Route
+                path="/govt-verify/:id"
+                element={
+                  <ProtectedRoute>
+                    <IssueVerification />
+                  </ProtectedRoute>
+                }
+              />
 
               <Route path="/citizen" element={<CitizenLandingPage />} />
               <Route path="/trackprogress" element={<TrackProgress />} />
               <Route path="/issue-submission" element={<IssueSubmission />} />
               <Route path="/contribution" element={<Contribution />} />
-              
+
 
 
             </Routes>

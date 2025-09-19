@@ -103,14 +103,15 @@ async function setupDatabase() {
         description TEXT NOT NULL,
         photo TEXT(60000),
         emergency BOOLEAN DEFAULT FALSE,
-        status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
+        status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending',
+        assigned_department VARCHAR(100) NULL
       )
     `);
     console.log('✅ Issues table created');
 
 
     await connection.execute(`
-      CREATE TABLE events (
+      CREATE TABLE IF NOT EXISTS events (
         id INT AUTO_INCREMENT PRIMARY KEY,
         event_name VARCHAR(255) NOT NULL,
         date DATE NOT NULL,

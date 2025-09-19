@@ -21,6 +21,7 @@ async function setupDatabase() {
 
     console.log('✅ Connected to Railway public MySQL');
 
+
     // Create users table
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS users (
@@ -38,7 +39,7 @@ async function setupDatabase() {
         googleId VARCHAR(100) UNIQUE,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        reward_points INT DEFAULT 0
+        reward_point INT DEFAULT 0
       )
     `);
     console.log('✅ Users table created');

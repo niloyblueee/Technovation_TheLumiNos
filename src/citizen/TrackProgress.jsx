@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import './TrackProgress.css';
+import { useAuth } from '../contexts/AuthContext';
 
 function TrackProgress() {
+  const { user, isAuthenticated } = useAuth();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Only load when authenticated; otherwise clear list
+    if (!isAuthenticated) {
+      setProblems([]);
+      setLoading(false);
+      return;
+    }
     let mounted = true;
     const controller = new AbortController();
 
@@ -22,9 +30,12 @@ function TrackProgress() {
         if (mounted) {
           // map backend issues to UI shape: id, title, status
           const arr = Array.isArray(data) ? data : [];
+          // filter to current user's issues by phone_number
+          const phone = user?.phone_number;
+          const mine = phone ? arr.filter(i => String(i.phone_number || '') === String(phone)) : [];
           // sort newest first by id (assuming auto-increment)
-          arr.sort((a, b) => (b.id || 0) - (a.id || 0));
-          const mapped = arr.map(i => {
+          mine.sort((a, b) => (b.id || 0) - (a.id || 0));
+          const mapped = mine.map(i => {
             const rawStatus = (i.status || '').toLowerCase();
             let statusLabel = 'Pending';
             if (rawStatus.includes('progress') || rawStatus.includes('in_progress') || rawStatus.includes('in-progress')) statusLabel = 'On Progress';
@@ -49,7 +60,7 @@ function TrackProgress() {
 
     load();
     return () => { mounted = false; controller.abort(); };
-  }, []);
+  }, [isAuthenticated, user?.phone_number]);
 
   // Return a CSS class name for the badge based on status (case-insensitive)
   const getStatusClass = (status) => {

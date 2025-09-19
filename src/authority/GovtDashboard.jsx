@@ -138,6 +138,7 @@ const GovtDashboard = () => {
       <div className={styles.upperPart}>
         <h1>Government Dashboard</h1>
       </div>
+
       <div className={styles.mapPortion}>
         <div className={styles.map}>
           <MapContainer
@@ -168,7 +169,6 @@ const GovtDashboard = () => {
                     <h4>Issue #{selectedIssue.id}</h4>
                     <p style={{ margin: '6px 0' }}>{selectedIssue.description || 'No description'}</p>
                     {selectedIssue.photo ? (
-                      // photo is stored as a data URL string in DB
                       <img src={selectedIssue.photo} alt="evidence" style={{ width: '100%', borderRadius: 6 }} />
                     ) : (
                       <div style={{ color: '#666' }}>No photo provided</div>
@@ -180,13 +180,13 @@ const GovtDashboard = () => {
             )}
           </MapContainer>
         </div>
+
         <div className={styles.adminButton}>
-          <button className={` btn btn-danger`}>Problems</button>
-          <button className={` btn btn-outline-success`}  onClick={() => navigate('/govt-events')}>Events</button>
-          <button className={` btn btn-outline-success`} onClick={() => navigate('/govt-reward-page')} >Reward</button>
+          <button className={` btn btn-danger`} onClick={() => navigate('/govt-problem-page')}>Problems</button>
+          <button className={` btn btn-outline-success`} onClick={() => navigate('/govt-events')}>Events</button>
+          <button className={` btn btn-outline-success`} onClick={() => navigate('/govt-reward-page')}>Reward</button>
         </div>
       </div>
-
     </div>
   )
 }

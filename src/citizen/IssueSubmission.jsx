@@ -6,6 +6,7 @@
 // 3. Place this file in src/components/ and import it where you need it.
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import './IssueSubmission.css';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -95,7 +96,8 @@ const IssueSubmissionWithMap = () => {
   const [geoError, setGeoError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const loggedInUserNumber = '+8801731481414';
+  const { user } = useAuth();
+  const loggedInUserNumber = user?.phone_number || '';
 
   // Attempt to get the current location using the browser Geolocation API
   const getLiveLocation = (options = { enableHighAccuracy: true, timeout: 10000 }) => {
@@ -230,6 +232,11 @@ const IssueSubmissionWithMap = () => {
       return;
     }
 
+    if (!loggedInUserNumber) {
+      alert('Your phone number is missing from your profile. Please add it to your account before submitting an issue.');
+      return;
+    }
+
     const jsonPayload = {
       Sender: loggedInUserNumber,
       Coordinate: location ? `${location.latitude},${location.longitude}` : '',
@@ -245,7 +252,7 @@ const IssueSubmissionWithMap = () => {
 
     const addIssueToServer = async () => {
       try {
-        const response = await axios.post('http://localhost:5000/api/submit-issue', {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/submit-issue`, {
           phone_number: loggedInUserNumber,
           coordinate: jsonPayload.Coordinate,
           description: jsonPayload.Description,

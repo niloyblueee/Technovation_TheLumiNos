@@ -1,3 +1,6 @@
+//node -e "console.log(require('bcryptjs').hashSync('admin123', 12))"
+
+
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
@@ -85,26 +88,33 @@ async function setupDatabase() {
     `);
     console.log('✅ Admins table created');
 
+    // Insert fixed super admin record
+    await connection.execute(`
+      INSERT INTO admins(user_id, admin_level)
+      SELECT id, 'super' 
+      FROM users WHERE email = 'admin@technovation.com'
+      ON DUPLICATE KEY UPDATE admin_level = admin_level;
+    `);
     //Create ISSUES tabble
     await connection.execute(`
-      CREATE TABLE IF NOT EXISTS issues (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        phone_number VARCHAR(20),
-        coordinate VARCHAR(255) NOT NULL,
-        description TEXT NOT NULL,
-        photo VARCHAR(255),
-        emergency BOOLEAN DEFAULT FALSE,
-        status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
-      )
-    `);
+      CREATE TABLE IF NOT EXISTS issues(
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      phone_number VARCHAR(20),
+      coordinate VARCHAR(255) NOT NULL,
+      description TEXT NOT NULL,
+      photo VARCHAR(255),
+      emergency BOOLEAN DEFAULT FALSE,
+      status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
+    )
+      `);
     console.log('✅ Issues table created');
 
     // Insert fixed admin user (password: admin123)
-    const adminPassword = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K.';
+    const adminPassword = '$2b$12$/q8ieN3O2vmWEY/Uwh0uX.tD6sZHGSrOzhGtbNdRtAUnYNiAoPEZe';
     await connection.execute(`
-      INSERT IGNORE INTO users (firstName, lastName, email, password, national_id, sex, phone_number, role, status) 
-      VALUES ('System', 'Admin', 'admin@technovation.com', ?, 'ADMIN001', 'male', '01300000000', 'admin', 'active')
-    `, [adminPassword]);
+      INSERT IGNORE INTO users(firstName, lastName, email, password, national_id, sex, phone_number, role, status)
+    VALUES('System', 'Admin', 'admin@technovation.com', ?, 'ADMIN001', 'male', '01300000000', 'admin', 'active')
+      `, [adminPassword]);
     console.log('✅ Fixed admin user created (admin@technovation.com / admin123)');
 
 

@@ -7,6 +7,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import './IssueSubmission.css';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -96,7 +97,8 @@ const IssueSubmissionWithMap = () => {
   const [geoError, setGeoError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const loggedInUserNumber = user?.phone_number || '';
 
   // Attempt to get the current location using the browser Geolocation API
@@ -271,7 +273,16 @@ const IssueSubmissionWithMap = () => {
   return (
     <div className="app-container">
       <div className="form-card">
-        <h1 className="form-title">Issue Submission (with live location)</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 className="form-title" style={{ margin: 0 }}>Issue Submission (with live location)</h1>
+          <button
+            type="button"
+            className="file-upload-button"
+            onClick={() => { logout(); navigate('/auth'); }}
+          >
+            Logout
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-section">

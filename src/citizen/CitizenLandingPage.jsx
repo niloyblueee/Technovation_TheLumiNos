@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 function CitizenLandingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -66,6 +66,14 @@ function CitizenLandingPage() {
                 <div className="citizen-user-line"><strong>Phone:</strong> {user.phone_number || 'Not provided'}</div>
               </div>
             )}
+            <div className="citizen-logout-row">
+              <button
+                className="logout-btn"
+                onClick={() => { logout(); navigate('/auth'); }}
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
           <div className="notifications-wrapper" ref={wrapperRef}>

@@ -55,6 +55,34 @@
   font-size: 0.95rem;
 }
 
+.citizen-logout-row {
+  display: flex;
+  justify-content: center;
+}
+
+.logout-btn {
+  margin-top: 8px;
+  padding: 10px 20px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  background-color: #fff;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  font-weight: bold;
+  box-shadow: 4px 4px 0px 0px #000;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.logout-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px 0px #000;
+}
+
+.logout-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #000;
+}
+
 /* Welcome banner */
 .dashboardTitle {
   padding: 15px 30px;

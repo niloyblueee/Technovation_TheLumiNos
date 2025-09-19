@@ -2,7 +2,6 @@
   padding: 20px;
   max-width: 600px;
   margin: auto;
-  box-shadow: 2px 2px 2px 2px;
 }
 
 .form-inputs {
@@ -26,10 +25,6 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-}
-
-.add-button:hover {
-  background-color: #0056b3;
 }
 
 .text p {

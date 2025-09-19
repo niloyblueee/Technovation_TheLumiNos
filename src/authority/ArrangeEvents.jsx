@@ -61,7 +61,7 @@ let ArrangeEvents = () => {
             value={newDescription}
             onChange={handleDescriptionChange}
           />
-          <button className="add-button" type="submit">
+          <button className="add-button btn btn-success" type="submit">
             Add <IoMdAdd />
           </button>
         </div>

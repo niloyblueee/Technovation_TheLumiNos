@@ -14,6 +14,37 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// helper to call OpenAI REST API (no dependency)
+const fetch = require('node-fetch');
+
+async function callOpenAI(prompt) {
+  const key = process.env.OPENAI_API_KEY;
+  const model = process.env.OPENAI_MODEL || 'gpt-4-mini';
+  if (!key) throw new Error('OPENAI_API_KEY not configured');
+
+  const resp = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${key}`,
+    },
+    body: JSON.stringify({
+      model,
+      input: prompt,
+      max_tokens: 400,
+      temperature: 0.0,
+    }),
+  });
+  if (!resp.ok) {
+    const txt = await resp.text();
+    throw new Error(`OpenAI error: ${resp.status} ${txt}`);
+  }
+  const data = await resp.json();
+  // Attempt to extract the text from the response structure
+  const out = (data.output && Array.isArray(data.output) && data.output.length) ? data.output.map(o => o.content).flat().join('\n') : JSON.stringify(data);
+  return out;
+}
+
 // GET /api/issues - return issues with parsed coordinates
 router.get('/', async (req, res) => {
   const db = req.db;
@@ -108,6 +139,47 @@ router.post('/:id/verify', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Verify issue error:', err);
     res.status(500).json({ message: 'Failed to verify issue' });
+  }
+});
+
+// AI validation endpoint - returns suggested validation and two suggested departments + explanation
+router.post('/:id/validate-ai', authenticateToken, async (req, res) => {
+  try {
+    if (!['govt_authority', 'admin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const id = req.params.id;
+    const [rows] = await req.db.query('SELECT id, description, photo FROM issues WHERE id = ?', [id]);
+    if (!rows.length) return res.status(404).json({ message: 'Issue not found' });
+    const issue = rows[0];
+
+    // Build prompt for OpenAI
+    const departmentsResp = ['police', 'health', 'fire', 'water', 'electricity'];
+    const prompt = `You are given an incident report. Determine whether the incident appears to be a real/valid report based on the description and photo (photo is a textual URL, you should only reason from the description and image filename). Respond exactly in JSON with keys: validated ("yes" or "no"), confidence (0-1 decimal), suggestions (array of up to 2 department strings chosen from: ${departmentsResp.join(', ')}), explanation (short). Here is the report:\nDESCRIPTION:\n${issue.description || ''}\nPHOTO_URL:\n${issue.photo || ''}`;
+
+    const aiText = await callOpenAI(prompt);
+
+    // Try parse JSON from model output
+    let parsed = null;
+    try {
+      const idx = aiText.indexOf('{');
+      const jsonText = idx >= 0 ? aiText.slice(idx) : aiText;
+      parsed = JSON.parse(jsonText);
+    } catch (e) {
+      // fallback: return raw text explanation and attempt heuristics
+      return res.json({ validated: 'unknown', confidence: 0, suggestions: [], explanation: aiText });
+    }
+
+    // sanitize suggestions to known departments and pick up to 2
+    const suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions.filter(s => departmentsResp.includes(String(s).toLowerCase())).slice(0,2) : [];
+    const validated = parsed.validated === 'yes' ? 'validated' : (parsed.validated === 'no' ? 'not_validated' : 'unknown');
+    const confidence = typeof parsed.confidence === 'number' ? parsed.confidence : 0;
+
+    res.json({ validated, confidence, suggestions, explanation: parsed.explanation || '' });
+  } catch (err) {
+    console.error('AI validate error:', err);
+    res.status(500).json({ message: 'Failed to validate via AI', detail: String(err.message) });
   }
 });
 

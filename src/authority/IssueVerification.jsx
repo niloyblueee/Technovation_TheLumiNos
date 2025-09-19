@@ -14,6 +14,8 @@ export default function IssueVerification() {
     const [selectedDept, setSelectedDept] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [aiResult, setAiResult] = useState(null);
+    const [aiLoading, setAiLoading] = useState(false);
 
     useEffect(() => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -25,6 +27,17 @@ export default function IssueVerification() {
                 ]);
                 setIssue(issueData);
                 setDepartments(meta.departments || []);
+                // trigger AI validation after we have the issue
+                try {
+                    setAiLoading(true);
+                    const { data: ai } = await axios.post(`${base}/api/issues/${id}/validate-ai`);
+                    setAiResult(ai);
+                } catch (ae) {
+                    console.warn('AI validation failed', ae);
+                    setAiResult({ error: ae.response?.data?.message || ae.message });
+                } finally {
+                    setAiLoading(false);
+                }
             } catch (e) {
                 setError(e.response?.data?.message || 'Failed to load issue');
             } finally {
@@ -70,8 +83,24 @@ export default function IssueVerification() {
                 </div>
             </div>
 
-            {/* AI suggestion placeholder */}
-            <div className={styles.aiBox}>AI suggestion (coming soon)</div>
+            {/* AI suggestion box */}
+            <div className={styles.aiBox}>
+                {aiLoading && <div>Analyzing with AI...</div>}
+                {!aiLoading && aiResult && aiResult.error && (
+                    <div style={{ color: 'red' }}>AI error: {aiResult.error}</div>
+                )}
+                {!aiLoading && aiResult && !aiResult.error && (
+                    <div>
+                        <div><b>Validation:</b> {aiResult.validated === 'validated' ? 'Validated' : (aiResult.validated === 'not_validated' ? 'Not validated' : 'Unknown')}</div>
+                        <div><b>Confidence:</b> {typeof aiResult.confidence === 'number' ? Math.round(aiResult.confidence * 100) + '%' : 'N/A'}</div>
+                        <div style={{ marginTop: 6 }}><b>Suggested Departments:</b> {aiResult.suggestions && aiResult.suggestions.length ? aiResult.suggestions.join(', ') : 'None'}</div>
+                        <div style={{ marginTop: 6 }}><b>Explanation:</b><div>{aiResult.explanation || 'No explanation provided'}</div></div>
+                    </div>
+                )}
+                {!aiLoading && !aiResult && (
+                    <div>AI suggestion not available</div>
+                )}
+            </div>
 
             <div className={styles.panels}>
                 <div className={styles.panel}>

@@ -14,13 +14,22 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// helper to call OpenAI REST API (no dependency)
-const fetch = require('node-fetch');
+// helper to call OpenAI REST API
+// Prefer Node's global fetch (Node >=18). If unavailable, lazy-load node-fetch.
+const fetch = global.fetch || ((...args) => import('node-fetch').then(({ default: f }) => f(...args)));
 
 async function callOpenAI(prompt) {
   const key = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || 'gpt-4-mini';
-  if (!key) throw new Error('OPENAI_API_KEY not configured');
+  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  if (!key) {
+    // Graceful local fallback when AI is not configured
+    return JSON.stringify({
+      validated: 'unknown',
+      confidence: 0,
+      suggestions: [],
+      explanation: 'AI disabled: OPENAI_API_KEY not configured on the server.'
+    });
+  }
 
   const resp = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
@@ -31,8 +40,11 @@ async function callOpenAI(prompt) {
     body: JSON.stringify({
       model,
       input: prompt,
-      max_tokens: 400,
+      // Responses API expects max_output_tokens
+      max_output_tokens: 400,
       temperature: 0.0,
+      // Ask the model to return strict JSON to simplify parsing
+      response_format: { type: 'json_object' },
     }),
   });
   if (!resp.ok) {
@@ -40,8 +52,24 @@ async function callOpenAI(prompt) {
     throw new Error(`OpenAI error: ${resp.status} ${txt}`);
   }
   const data = await resp.json();
-  // Attempt to extract the text from the response structure
-  const out = (data.output && Array.isArray(data.output) && data.output.length) ? data.output.map(o => o.content).flat().join('\n') : JSON.stringify(data);
+  // Attempt to extract the text from the response structure (Responses API)
+  // Prefer output_text when available, else flatten output[].content[].text
+  let out;
+  if (typeof data.output_text === 'string' && data.output_text.length) {
+    out = data.output_text;
+  } else if (Array.isArray(data.output)) {
+    const parts = [];
+    for (const item of data.output) {
+      if (Array.isArray(item.content)) {
+        for (const c of item.content) {
+          if (c && typeof c.text === 'string') parts.push(c.text);
+        }
+      }
+    }
+    out = parts.join('\n');
+  } else {
+    out = JSON.stringify(data);
+  }
   return out;
 }
 
@@ -154,6 +182,25 @@ router.post('/:id/validate-ai', authenticateToken, async (req, res) => {
     if (!rows.length) return res.status(404).json({ message: 'Issue not found' });
     const issue = rows[0];
 
+    // If AI key is missing, provide a heuristic fallback instead of failing
+    if (!process.env.OPENAI_API_KEY) {
+      const departmentsResp = ['police', 'health', 'fire', 'water', 'electricity'];
+      const text = `${issue.description || ''} ${issue.photo || ''}`.toLowerCase();
+      const suggestions = [];
+      if (/accident|theft|crime|police|assault/.test(text)) suggestions.push('police');
+      if (/injur|blood|ambulance|hospital|health|medical/.test(text)) suggestions.push('health');
+      if (/fire|smoke|burn|flame/.test(text)) suggestions.push('fire');
+      if (/water|leak|pipe|flood/.test(text)) suggestions.push('water');
+      if (/electric|power|wire|shock|transformer/.test(text)) suggestions.push('electricity');
+      const uniq = suggestions.filter((s, i, a) => a.indexOf(s) === i).filter(s => departmentsResp.includes(s)).slice(0, 2);
+      return res.json({
+        validated: 'unknown',
+        confidence: 0,
+        suggestions: uniq,
+        explanation: 'AI is not configured on this server. Provided simple keyword-based suggestions.'
+      });
+    }
+
     // Build prompt for OpenAI
     const departmentsResp = ['police', 'health', 'fire', 'water', 'electricity'];
     const prompt = `You are given an incident report. Determine whether the incident appears to be a real/valid report based on the description and photo (photo is a textual URL, you should only reason from the description and image filename). Respond exactly in JSON with keys: validated ("yes" or "no"), confidence (0-1 decimal), suggestions (array of up to 2 department strings chosen from: ${departmentsResp.join(', ')}), explanation (short). Here is the report:\nDESCRIPTION:\n${issue.description || ''}\nPHOTO_URL:\n${issue.photo || ''}`;
@@ -172,7 +219,7 @@ router.post('/:id/validate-ai', authenticateToken, async (req, res) => {
     }
 
     // sanitize suggestions to known departments and pick up to 2
-    const suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions.filter(s => departmentsResp.includes(String(s).toLowerCase())).slice(0,2) : [];
+    const suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions.filter(s => departmentsResp.includes(String(s).toLowerCase())).slice(0, 2) : [];
     const validated = parsed.validated === 'yes' ? 'validated' : (parsed.validated === 'no' ? 'not_validated' : 'unknown');
     const confidence = typeof parsed.confidence === 'number' ? parsed.confidence : 0;
 

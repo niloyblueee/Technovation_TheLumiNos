@@ -2,13 +2,20 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 if (!process.env.JWT_SECRET) {
     console.warn('⚠️  JWT_SECRET is not set. Auth token generation will fail. Set JWT_SECRET in environment.');
+}
+
+// Quick visibility on AI setup
+if (process.env.OPENAI_API_KEY) {
+    console.log('🔮 OpenAI: enabled (key detected)');
+} else {
+    console.log('🔮 OpenAI: disabled (no key)');
 }
 
 // Middleware
@@ -108,6 +115,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issues'));
+app.use('/api/ai', require('./routes/ai-suggest'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/notifications', require('./routes/notifications'));

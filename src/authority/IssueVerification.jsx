@@ -27,13 +27,42 @@ export default function IssueVerification() {
                 ]);
                 setIssue(issueData);
                 setDepartments(meta.departments || []);
-                // trigger AI validation after we have the issue
+                // trigger AI suggestion after we have the issue
                 try {
                     setAiLoading(true);
-                    const { data: ai } = await axios.post(`${base}/api/issues/${id}/validate-ai`);
+                    const payload = {
+                        description: issueData.description || '',
+                        photo: issueData.photo || '',
+                        departments: meta.departments || [],
+                    };
+                    const { data: ai } = await axios.post(`${base}/api/ai/suggest`, payload);
                     setAiResult(ai);
+                    // If a department is suggested, preselect it (non-destructive)
+                    if (ai && ai.department && !selectedDept) {
+                        setSelectedDept(ai.department);
+                    }
                 } catch (ae) {
-                    console.warn('AI validation failed', ae);
+                    console.warn('AI suggestion failed', ae);
+                    setAiResult({ error: ae.response?.data?.message || ae.message });
+                } finally {
+                    setAiLoading(false);
+                }
+                // trigger AI suggestion after we have the issue
+                try {
+                    setAiLoading(true);
+                    const payload = {
+                        description: issueData.description || '',
+                        photo: issueData.photo || '',
+                        departments: meta.departments || [],
+                    };
+                    const { data: ai } = await axios.post(`${base}/api/ai/suggest`, payload);
+                    setAiResult(ai);
+                    // If a department is suggested, preselect it (non-destructive)
+                    if (ai && ai.department && !selectedDept) {
+                        setSelectedDept(ai.department);
+                    }
+                } catch (ae) {
+                    console.warn('AI suggestion failed', ae);
                     setAiResult({ error: ae.response?.data?.message || ae.message });
                 } finally {
                     setAiLoading(false);
@@ -89,12 +118,29 @@ export default function IssueVerification() {
                 {!aiLoading && aiResult && aiResult.error && (
                     <div style={{ color: 'red' }}>AI error: {aiResult.error}</div>
                 )}
+                {/* Render ai-suggest result */}
                 {!aiLoading && aiResult && !aiResult.error && (
                     <div>
-                        <div><b>Validation:</b> {aiResult.validated === 'validated' ? 'Validated' : (aiResult.validated === 'not_validated' ? 'Not validated' : 'Unknown')}</div>
-                        <div><b>Confidence:</b> {typeof aiResult.confidence === 'number' ? Math.round(aiResult.confidence * 100) + '%' : 'N/A'}</div>
-                        <div style={{ marginTop: 6 }}><b>Suggested Departments:</b> {aiResult.suggestions && aiResult.suggestions.length ? aiResult.suggestions.join(', ') : 'None'}</div>
-                        <div style={{ marginTop: 6 }}><b>Explanation:</b><div>{aiResult.explanation || 'No explanation provided'}</div></div>
+                        <div><b>Photo:</b> {issue.photo ? 'Present' : 'Not provided'}</div>
+                        {!issue.photo && (
+                            <div><b>Validation:</b> Cannot validate (no photo)</div>
+                        )}
+                        {issue.photo && (
+                            <div><b>Validation:</b> {aiResult.valid ? 'Validated' : 'Not validated'}</div>
+                        )}
+                        <div style={{ marginTop: 6 }}>
+                            <b>Suggested Department:</b> {aiResult.department ? (
+                                <>
+                                    <span style={{ textTransform: 'capitalize' }}>{aiResult.department}</span>
+                                    <button className={styles.btn} style={{ marginLeft: 8 }} onClick={() => setSelectedDept(aiResult.department)}>
+                                        Use "{aiResult.department}"
+                                    </button>
+                                </>
+                            ) : 'None'}
+                        </div>
+                        {aiResult.reason && (
+                            <div style={{ marginTop: 6 }}><b>Reason:</b> {aiResult.reason}</div>
+                        )}
                     </div>
                 )}
                 {!aiLoading && !aiResult && (

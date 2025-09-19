@@ -30,3 +30,25 @@
 .text p {
   margin: 5px 0;
 }
+
+/* Status pill styles */
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(0,0,0,0.12);
+}
+.status-upcoming {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+.status-ongoing {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+.status-past {
+  background: #fbe9e7;
+  color: #bf360c;
+}

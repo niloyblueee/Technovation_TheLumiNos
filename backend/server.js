@@ -84,6 +84,21 @@ const pool = mysql.createPool(dbConfig);
     }
 })();
 
+// Minimal schema check/migration: ensure users.reward_points exists
+(async () => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS 
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND COLUMN_NAME = 'reward_point'`,
+            [dbConfig.database]
+        );
+        const hasCol = rows && rows[0] && rows[0].cnt > 0;
+
+    } catch (e) {
+        console.warn('Schema check/migration skipped or failed:', e.message);
+    }
+})();
+
 // Make database available to routes
 app.use((req, res, next) => {
     req.db = pool;
@@ -93,6 +108,8 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issues'));
+app.use('/api/leaderboard', require('./routes/leaderboard'));
+app.use('/api/events', require('./routes/events'));
 
 // Health check endpoint (includes DB ping)
 app.get('/api/health', async (req, res) => {

@@ -1,27 +1,65 @@
 import React, { useState, useEffect } from "react";
 import styles from "./GovtRewardPage.module.css";
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
 const GovtRewardPage = () => {
 
-  const [citizens, setCitizens] = useState([
-    { id: 1, name: "Rahim Uddin", points: 2500 },
-    { id: 2, name: "Karim Ali", points: 1800 },
-    { id: 3, name: "Nasrin Akter", points: 3200 },
-    { id: 4, name: "Hasan Mahmud", points: 2200 },
-  ]);
-
-  const [sortedCitizens, setSortedCitizens] = useState([]);
+  const { user } = useAuth();
+  const [citizens, setCitizens] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-  
-    const sorted = [...citizens].sort((a, b) => b.points - a.points);
-    setSortedCitizens(sorted);
-  }, [citizens]);
+    let cancelled = false;
+    const fetchLeaderboard = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const resp = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/leaderboard/citizens`);
+        if (!cancelled) {
+          const rows = resp.data.leaderboard || [];
+          const mapped = rows.map((r) => ({
+            id: r.id,
+            name: `${r.firstName} ${r.lastName}`.trim(),
+            points: r.reward_point || 0,
+            email: r.email,
+            phone_number: r.phone_number,
+          }));
+          setCitizens(mapped);
+        }
+      } catch (e) {
+        if (!cancelled) setError(e.response?.data?.message || 'Failed to load leaderboard');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    fetchLeaderboard();
+    return () => { cancelled = true; }
+  }, []);
 
   const handleInvite = (citizen) => {
     alert(`Invitation sent to ${citizen.name} for the event!`);
     // here you could integrate API call for sending invite
   };
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>🏆 Reward Dashboard</h1>
+        <p>Loading leaderboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>🏆 Reward Dashboard</h1>
+        <p style={{ color: 'red' }}>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -36,7 +74,7 @@ const GovtRewardPage = () => {
           </tr>
         </thead>
         <tbody>
-          {sortedCitizens.map((citizen, index) => (
+          {citizens.map((citizen, index) => (
             <tr key={citizen.id}>
               <td>{index + 1}</td>
               <td>{citizen.name}</td>

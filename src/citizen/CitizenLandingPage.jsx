@@ -63,7 +63,9 @@ function CitizenLandingPage() {
             {user && (
               <div className="citizen-user-info">
                 <div className="citizen-user-line"><strong>Name:</strong> {user.firstName} {user.lastName}</div>
+                <div className="citizen-user-line"><strong>Email:</strong> {user.email || 'Not provided'}</div>
                 <div className="citizen-user-line"><strong>Phone:</strong> {user.phone_number || 'Not provided'}</div>
+                <div className="citizen-user-line"><strong>Reward Points:</strong> <span style={{ fontWeight: 'bold' }}>{user.reward_points ?? 0}</span></div>
               </div>
             )}
             <div className="citizen-logout-row">
@@ -132,7 +134,7 @@ function CitizenLandingPage() {
           </div>
         </header>
 
-        <div className="buttonRow">
+        <div className="button-row">
           <button className="TrackProgress" onClick={() => navigate('/trackprogress')}>Track Progress</button>
           <button className="IssueSubmission" onClick={() => navigate('/issue-submission')}>Issue Submission</button>
           <button className="Contribution" onClick={() => navigate('/contribution')}>Contribution</button>

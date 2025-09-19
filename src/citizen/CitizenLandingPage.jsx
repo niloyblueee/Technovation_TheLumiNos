@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import './CitizenLandingPage.css';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function CitizenLandingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,15 @@ function CitizenLandingPage() {
     <>
       <div className="dashboardContainer">
         <header className="header">
-          <h1 className="dashboardTitle">Welcome To Your Dashboard</h1>
+          <div className="citizen-header-left">
+            <h1 className="dashboardTitle">Welcome To Your Dashboard</h1>
+            {user && (
+              <div className="citizen-user-info">
+                <div className="citizen-user-line"><strong>Name:</strong> {user.firstName} {user.lastName}</div>
+                <div className="citizen-user-line"><strong>Phone:</strong> {user.phone_number || 'Not provided'}</div>
+              </div>
+            )}
+          </div>
 
           <div className="notifications-wrapper" ref={wrapperRef}>
             <button

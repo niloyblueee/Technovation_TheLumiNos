@@ -292,6 +292,7 @@ router.post('/login', async (req, res) => {
                 email: user.email,
                 national_id: user.national_id,
                 sex: user.sex,
+                phone_number: user.phone_number,
                 status: user.status,
                 department,
                 region,
@@ -380,6 +381,7 @@ router.post('/google', async (req, res) => {
                 email: user.email,
                 national_id: user.national_id,
                 sex: user.sex,
+                phone_number: user.phone_number || null,
                 department,
                 role: user.role,
                 profileImage: user.profileImage || null
@@ -397,7 +399,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     try {
         // Get user data from database
         const [[user]] = await req.db.execute(
-            `SELECT id, firstName, lastName, email, national_id, sex, role, createdAt, profileImage
+            `SELECT id, firstName, lastName, email, national_id, sex, phone_number, role, createdAt, profileImage
        FROM users
        WHERE id = ?`,
             [req.user.id]
@@ -425,6 +427,7 @@ router.get('/me', authenticateToken, async (req, res) => {
                 email: user.email,
                 national_id: user.national_id,
                 sex: user.sex,
+                phone_number: user.phone_number,
                 department,
                 role: user.role,
                 createdAt: user.createdAt,

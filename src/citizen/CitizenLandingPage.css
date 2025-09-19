@@ -29,6 +29,27 @@
   width: 100%;
 }
 
+/* Left header block with title and user info */
+.citizen-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.citizen-user-info {
+  border: 2px solid #000;
+  border-radius: 10px;
+  background-color: #fff;
+  box-shadow: 4px 4px 0px 0px #000;
+  padding: 10px 16px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.citizen-user-line {
+  font-size: 0.95rem;
+}
+
 /* Welcome banner */
 .dashboardTitle {
   padding: 15px 30px;

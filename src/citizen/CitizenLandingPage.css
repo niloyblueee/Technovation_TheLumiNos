@@ -14,18 +14,23 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* vertical center */
-  align-items: center;     /* horizontal center */
-  gap: 30px;               /* space between title/header and buttons */
+  justify-content: center;
+  /* vertical center */
+  align-items: center;
+  /* horizontal center */
+  gap: 30px;
+  /* space between title/header and buttons */
 }
 
 /* Header section with welcome banner and notification icon */
 .header {
   display: flex;
-  justify-content: center; /* center title while notification is absolutely positioned */
+  justify-content: center;
+  /* center title while notification is absolutely positioned */
   align-items: center;
   /* removed fixed bottom margin to rely on container gap for spacing */
-  position: relative; /* allow .notifications to sit at top-right */
+  position: relative;
+  /* allow .notifications to sit at top-right */
   width: 100%;
 }
 
@@ -108,12 +113,13 @@
 .notifications-menu {
   position: absolute;
   right: 0;
-  margin-top: 52px; /* below the notification button */
+  margin-top: 52px;
+  /* below the notification button */
   width: 320px;
   max-height: 360px;
   overflow-y: auto;
   background: #fff;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
   border-radius: 8px;
   z-index: 1000;
   padding: 8px;
@@ -148,12 +154,15 @@
   text-align: left;
   background: transparent;
 }
+
 .notification-item.unread {
   background: #f6f9ff;
 }
+
 .notification-item.read {
   background: transparent;
 }
+
 .notification-item:hover {
   background: #eef3ff;
 }
@@ -163,6 +172,7 @@
   font-size: 14px;
   margin-bottom: 4px;
 }
+
 .notification-time {
   font-size: 12px;
   color: #666;
@@ -180,21 +190,28 @@
 .button-row {
   display: flex;
   justify-content: center;
-  gap: 40px; /* increased gap between buttons */
+  gap: 40px;
+  /* increased gap between buttons */
   width: 100%;
   max-width: 700px;
   align-items: center;
 }
 
 /* General button styles */
-.TrackProgress, .IssueSubmission, .Contribution {
+.TrackProgress,
+.IssueSubmission,
+.Contribution {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 1 200px; /* base width, can shrink on small screens */
-  min-width: 160px; /* ensure buttons keep readable size */
-  padding: 18px 36px; /* increased padding for more internal space */
-  margin: 0 8px; /* small outer margin as extra spacing */
+  flex: 0 1 200px;
+  /* base width, can shrink on small screens */
+  min-width: 160px;
+  /* ensure buttons keep readable size */
+  padding: 18px 36px;
+  /* increased padding for more internal space */
+  margin: 0 8px;
+  /* small outer margin as extra spacing */
   border: 2px solid #000;
   border-radius: 15px;
   background-color: #fff;
@@ -210,13 +227,17 @@
 }
 
 /* Hover effect for buttons */
-.TrackProgress:hover, .IssueSubmission:hover, .Contribution:hover {
+.TrackProgress:hover,
+.IssueSubmission:hover,
+.Contribution:hover {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0px 0px #000;
 }
 
 /* Active (click) effect for buttons */
-.TrackProgress:active, .IssueSubmission:active, .Contribution:active {
+.TrackProgress:active,
+.IssueSubmission:active,
+.Contribution:active {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0px 0px #000;
 }

@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
             setIsAuthenticated(true);
             toast.success('Welcome back!');
-            return { success: true };
+            return { success: true, user };
         } catch (error) {
             const message = error.response?.data?.message || 'Login failed';
             toast.error(message);
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
             setIsAuthenticated(true);
             toast.success('Account created successfully!');
-            return { success: true };
+            return { success: true, user };
         } catch (error) {
             const message = error.response?.data?.message || 'Registration failed';
             toast.error(message);
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
             setIsAuthenticated(true);
             toast.success('Welcome!');
-            return { success: true };
+            return { success: true, user };
         } catch (error) {
             const message = error.response?.data?.message || 'Google login failed';
             toast.error(message);

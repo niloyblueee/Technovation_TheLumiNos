@@ -13,14 +13,7 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [activeFeature, setActiveFeature] = useState('dashboard');
 
-    // Route to appropriate dashboard based on user role
-    if (user?.role === 'govt_authority') {
-        return <GovernmentDashboard />;
-    }
-
-    if (user?.role === 'citizen') {
-        return <CitizenDashboard />;
-    }
+    // This generic Dashboard is not used for govt/citizen anymore.
 
     const features = [
         { id: 'dashboard', name: 'Dashboard', icon: '🏠' },

@@ -42,12 +42,19 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirect admin users to admin panel
-  if (user?.role === 'admin') {
-    return <Navigate to="/admin" replace />;
-  }
+  // No implicit redirect here; children handle content. Redirects happen on login/register.
 
   return children;
+};
+
+// Default redirect based on auth + role
+const DefaultRedirect = () => {
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/auth" replace />;
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />;
+  if (user?.role === 'govt_authority') return <Navigate to="/govt-dashboard" replace />;
+  return <Navigate to="/citizen" replace />;
 };
 
 // Admin Protected Route component
@@ -74,7 +81,9 @@ const AdminProtectedRoute = ({ children }) => {
   }
 
   if (user?.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    // Non-admin users should not access /admin
+    if (user?.role === 'govt_authority') return <Navigate to="/govt-dashboard" replace />;
+    return <Navigate to="/citizen" replace />;
   }
 
   return children;
@@ -119,8 +128,8 @@ function App() {
                 }
               />
 
-              {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/auth" replace />} />
+              {/* Default redirect: if logged in, send to role-based page */}
+              <Route path="/" element={<DefaultRedirect />} />
 
 
 

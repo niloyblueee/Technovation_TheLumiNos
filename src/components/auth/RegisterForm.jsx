@@ -106,7 +106,10 @@ const RegisterForm = () => {
         setLoading(true);
         const result = await register(formData);
         if (result.success) {
-            navigate('/dashboard');
+            const role = result.user?.role;
+            if (role === 'admin') navigate('/admin');
+            else if (role === 'govt_authority') navigate('/govt-dashboard');
+            else navigate('/citizen');
         }
         setLoading(false);
     };
@@ -116,7 +119,10 @@ const RegisterForm = () => {
         try {
             const result = await googleLogin(credentialResponse.credential);
             if (result.success) {
-                navigate('/dashboard');
+                const role = result.user?.role;
+                if (role === 'admin') navigate('/admin');
+                else if (role === 'govt_authority') navigate('/govt-dashboard');
+                else navigate('/citizen');
             }
         } catch (error) {
             toast.error('Google Sign-In failed');

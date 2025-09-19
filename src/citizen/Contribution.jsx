@@ -18,6 +18,10 @@ const ContributionPage = () => {
         { item: 'Chips Packet', count: 5 },
     ];
 
+    // Cleanliness awards dummy values
+    const cleanPoints = 150;
+    const cleanRedeemable = 75;
+
     useEffect(() => {
         const fetchIssues = async () => {
             try {
@@ -125,12 +129,12 @@ const ContributionPage = () => {
                     <div className="panel award-panel">
                         <h2 className="panel-title">CleanLiness Awards</h2>
                         <div className="award-item">
-                            <div className="award-label">Total Points</div>
-                            <div className="award-value">{computed.total}</div>
+                            <div className="award-label">Clean Point</div>
+                            <div className="award-value">{cleanPoints}</div>
                         </div>
                         <div className="award-item">
                             <div className="award-label">Redeemable</div>
-                            <div className="award-value">{computed.redeemable} Tk</div>
+                            <div className="award-value">{cleanRedeemable} Tk</div>
                         </div>
                         <button className="redeem-button" onClick={handleRedeemClick}>
                             Online Redeem Options

@@ -93,7 +93,8 @@ async function setupDatabase() {
       ON DUPLICATE KEY UPDATE admin_level = admin_level;
     `);
 
-
+    await connection.execute(`Alter table issues drop assigned_department`);
+    await connection.execute(`Alter table issues add assigned_department VARCHAR(255) NULL`);
     // Create ISSUES table
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS issues(
@@ -107,6 +108,8 @@ async function setupDatabase() {
         assigned_department VARCHAR(100) NULL
       )
     `);
+
+
     console.log('✅ Issues table created');
 
 

@@ -85,7 +85,7 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
             });
         }
 
-    let { firstName, lastName, email, password, confirmPassword, national_id, sex, phone_number, department, region, role } = req.body;
+        let { firstName, lastName, email, password, confirmPassword, national_id, sex, phone_number, department, region, role } = req.body;
 
         // Remove confirmPassword from the data as it's not needed in the backend
         delete req.body.confirmPassword;
@@ -157,8 +157,8 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
         }
 
         // Retrieve the created user with profile image
-                const [[user]] = await req.db.execute(
-                        `SELECT 
+        const [[user]] = await req.db.execute(
+            `SELECT 
                  u.id,
                  u.firstName,
                  u.lastName,
@@ -174,8 +174,8 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
              FROM users u
              LEFT JOIN govt_authorities ga ON ga.user_id = u.id
              WHERE u.id = ?`,
-                        [result.insertId]
-                );
+            [result.insertId]
+        );
 
         // Generate JWT token for the user
         const token = jwt.sign(

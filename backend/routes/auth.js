@@ -85,7 +85,7 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
             });
         }
 
-        let { firstName, lastName, email, password, confirmPassword, national_id, sex, department, region, role } = req.body;
+    let { firstName, lastName, email, password, confirmPassword, national_id, sex, phone_number, department, region, role } = req.body;
 
         // Remove confirmPassword from the data as it's not needed in the backend
         delete req.body.confirmPassword;
@@ -137,9 +137,9 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
 
         // Insert user into database with profile image
         const [result] = await req.db.execute(
-            `INSERT INTO users (firstName, lastName, email, password, national_id, sex, role, status, profileImage)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [firstName, lastName, email, hashedPassword, national_id, sex, role, status, relProfile]
+            `INSERT INTO users (firstName, lastName, email, password, national_id, sex, phone_number, role, status, profileImage)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [firstName, lastName, email, hashedPassword, national_id, sex, phone_number, role, status, relProfile]
         );
 
         // Insert government authority record if user is a government authority
@@ -157,24 +157,25 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
         }
 
         // Retrieve the created user with profile image
-        const [[user]] = await req.db.execute(
-            `SELECT 
-         u.id,
-         u.firstName,
-         u.lastName,
-         u.email,
-         u.role,
-         u.national_id,
-         u.sex,
-         u.status,
-         u.profileImage,
-         ga.department,
-         ga.region
-       FROM users u
-       LEFT JOIN govt_authorities ga ON ga.user_id = u.id
-       WHERE u.id = ?`,
-            [result.insertId]
-        );
+                const [[user]] = await req.db.execute(
+                        `SELECT 
+                 u.id,
+                 u.firstName,
+                 u.lastName,
+                 u.email,
+                 u.national_id,
+                 u.sex,
+                 u.phone_number,
+                 u.role,
+                 u.status,
+                 u.profileImage,
+                 ga.department,
+                 ga.region
+             FROM users u
+             LEFT JOIN govt_authorities ga ON ga.user_id = u.id
+             WHERE u.id = ?`,
+                        [result.insertId]
+                );
 
         // Generate JWT token for the user
         const token = jwt.sign(
@@ -198,6 +199,7 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
                 department: user.department ?? null,
                 region: user.region ?? null,
                 role: user.role,
+                phone_number: user.phone_number,
                 profileImage: user.profileImage || null
             }
         });
@@ -210,28 +212,23 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
 
 
 // Login user and return profile data
-router.post('/login', validateLogin, async (req, res) => {
+router.post('/login', async (req, res) => {
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                message: 'Validation failed',
-                errors: errors.array()
-            });
+        const { email, phone_number, password } = req.body;
+        if (!password || (!email && !phone_number)) {
+            return res.status(400).json({ message: 'Email or phone number and password required' });
         }
 
-        const { email, password } = req.body;
-
-        // Get user by email for password verification
+        // Get user by email or phone_number
         const [rows] = await req.db.execute(
-            `SELECT id, firstName, lastName, email, password, national_id, sex, role, status, createdAt, profileImage
+            `SELECT id, firstName, lastName, email, password, national_id, sex, phone_number, role, status, createdAt, profileImage
        FROM users
-       WHERE email = ?`,
-            [email]
+       WHERE email = ? OR phone_number = ?`,
+            [email || '', phone_number || '']
         );
 
         if (rows.length === 0) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         const user = rows[0];

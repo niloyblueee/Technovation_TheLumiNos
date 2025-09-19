@@ -17,9 +17,9 @@ const RegisterForm = () => {
         confirmPassword: '',
         national_id: '',
         sex: '',
-        address: '',
-        phone_number: '',
-        location_coordinates: '',
+    address: '',
+    phone_number: '',
+    location_coordinates: '',
         department: '',
         region: '',
         role: '',
@@ -85,8 +85,8 @@ const RegisterForm = () => {
         }
         if (formData.role === 'citizen') {
             if (!formData.address) return 'Address is required';
-            if (!formData.phone_number) return 'Phone number is required';
         }
+        if (!formData.phone_number) return 'Phone number is required';
         if (formData.role === 'govt_authority') {
             if (!formData.department) return 'Department is required';
             if (!formData.region) return 'Region is required';
@@ -296,6 +296,20 @@ const RegisterForm = () => {
             {/* Government Authority-specific fields */}
             {formData.role === 'govt_authority' && (
                 <>
+                    <div className="form-group-signup">
+                        <div className="input-wrapper">
+                            <FiUser className="input-icon" />
+                            <input
+                                type="text"
+                                name="phone_number"
+                                value={formData.phone_number}
+                                onChange={handleChange}
+                                placeholder="Phone Number"
+                                required
+                                className="form-input"
+                            />
+                        </div>
+                    </div>
                     <div className="form-group-signup">
                         <div className="input-wrapper">
                             <FiBookOpen className="input-icon" />

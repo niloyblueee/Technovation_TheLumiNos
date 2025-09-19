@@ -10,7 +10,7 @@ import './AuthForms.css';
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({
-        email: '',
+        identifier: '', // can be email or phone number
         password: '',
     });
     const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +29,16 @@ const LoginForm = () => {
         e.preventDefault();
         setLoading(true);
 
-        const result = await login(formData);
+        // Pass identifier as either email or phone_number
+        const payload = {};
+        if (formData.identifier.includes('@')) {
+            payload.email = formData.identifier;
+        } else {
+            payload.phone_number = formData.identifier;
+        }
+        payload.password = formData.password;
+
+        const result = await login(payload);
         if (result.success) {
             navigate('/dashboard');
         }
@@ -62,20 +71,18 @@ const LoginForm = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
         >
-            {/* Email Field */}
+            {/* Email or Phone Field */}
             <div className="form-group-signup">
-                <div className="input-wrapper"
-                >
+                <div className="input-wrapper">
                     <FiMail className="input-icon" />
                     <input
-                        type="email"
-                        name="email"
-                        placeholder="Email address"
-                        value={formData.email}
+                        type="text"
+                        name="identifier"
+                        placeholder="Email address or Phone number"
+                        value={formData.identifier}
                         onChange={handleChange}
                         required
                         className="form-input"
-
                     />
                 </div>
             </div>

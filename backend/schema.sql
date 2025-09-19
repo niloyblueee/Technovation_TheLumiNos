@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     national_id VARCHAR(20) UNIQUE,
     sex ENUM('male', 'female', 'other') NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
     role ENUM('admin', 'govt_authority', 'citizen') DEFAULT 'citizen',
     status ENUM('active', 'pending', 'rejected') DEFAULT 'active',
     profileImage VARCHAR(255),
@@ -25,7 +26,6 @@ CREATE TABLE IF NOT EXISTS citizens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     address TEXT,
-    phone_number VARCHAR(20),
     location_coordinates JSON,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -94,8 +94,8 @@ FROM users WHERE email = 'admin@technovation.com'
 ON DUPLICATE KEY UPDATE admin_level = admin_level;
 
 -- Insert citizen record for the sample citizen
-INSERT INTO citizens (user_id, address, phone_number)
-SELECT id, '123 Main Street, Dhaka', '+8801234567890' 
+INSERT INTO citizens (user_id, address)
+SELECT id, '123 Main Street, Dhaka' 
 FROM users WHERE email = 'citizen@technovation.com'
 ON DUPLICATE KEY UPDATE address = address;
 

@@ -28,18 +28,36 @@ function CitizenLandingPage() {
     if (fetchedRef.current) return;
     const controller = new AbortController();
 
+    // use per-user storage key so each user has their own read state
+    const storageKey = user && user.email ? `notifications_read_${user.email}` : 'notifications_read_anonymous';
+
     async function load() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/notifications', {
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const url = `${base.replace(/\/$/, '')}/api/notifications`;
+        const res = await fetch(url, {
           signal: controller.signal,
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
         const data = await res.json();
-        setNotifications(Array.isArray(data) ? data : []);
+        const items = Array.isArray(data) ? data : [];
+
+        // load read set from localStorage
+        let readSet = {};
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) readSet = JSON.parse(raw) || {};
+        } catch (e) {
+          readSet = {};
+        }
+
+        // merge read state
+        const merged = items.map(n => ({ ...n, read: Boolean(readSet[n.id]) }));
+        setNotifications(merged);
         fetchedRef.current = true;
       } catch (err) {
         if (err.name !== 'AbortError') setError(err.message || 'Failed to load notifications');
@@ -50,9 +68,21 @@ function CitizenLandingPage() {
 
     load();
     return () => controller.abort();
-  }, [open]);
+  }, [open, user]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // helper to persist read state per-user
+  const persistReadState = (items) => {
+    const storageKey = user && user.email ? `notifications_read_${user.email}` : 'notifications_read_anonymous';
+    const map = {};
+    items.forEach(i => { if (i.read) map[i.id] = true; });
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(map));
+    } catch (e) {
+      // ignore storage errors
+    }
+  };
 
   return (
     <>
@@ -98,9 +128,11 @@ function CitizenLandingPage() {
                     className="mark-read-btn"
                     onClick={async (e) => {
                       e.stopPropagation();
-                      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-                      // optional: persist to backend
-                      // await fetch('/api/notifications/mark-read', { method: 'PUT', credentials: 'include' });
+                      setNotifications(prev => {
+                        const updated = prev.map(n => ({ ...n, read: true }));
+                        persistReadState(updated);
+                        return updated;
+                      });
                     }}
                   >
                     Mark all read
@@ -119,7 +151,11 @@ function CitizenLandingPage() {
                     key={n.id}
                     className={`notification-item ${n.read ? 'read' : 'unread'}`}
                     onClick={() => {
-                      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
+                      setNotifications(prev => {
+                        const updated = prev.map(x => x.id === n.id ? { ...x, read: true } : x);
+                        persistReadState(updated);
+                        return updated;
+                      });
                       if (n.path) navigate(n.path);
                     }}
                     role="menuitem"

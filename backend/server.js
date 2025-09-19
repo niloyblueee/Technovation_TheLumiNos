@@ -110,6 +110,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issues'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/events', require('./routes/events'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check endpoint (includes DB ping)
 app.get('/api/health', async (req, res) => {

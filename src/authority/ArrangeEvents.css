@@ -1,42 +1,37 @@
+.Event-List {
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+  box-shadow: 2px 2px 2px 2px;
+}
 
-.Event-List{
-  text-align: center;
-  margin-top: 100px;
-}
-h1{
-  font-size: 4rem;
-}
-buttonSuccess{
-  font-size: 1rem;
-  font-weight: bold;
-  color: rgb(12, 139, 5);
-  cursor: pointer;
-  border-radius: 5px;
-  margin-left: 10px;
-  padding: 5px;
-
-
-}
-input{
-  font-size: 15px;
-  padding: 5px;
-  border: 1px solid black;
-}
-ol{
-  padding: 0;
-}
-li{
-  font-size: 1.5rem;
-
-  margin-bottom: 10px;
-  background-color: hsl(0, 0%, 96%);
-  align-items: center;
+.form-inputs {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
 }
-.text{
+
+.form-inputs input {
   flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
-.delete-button , .move-button{
+
+.add-button {
+  background-color: #007bff;
+  color: white;
   padding: 8px 12px;
-  font-size: 1.4rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: #0056b3;
+}
+
+.text p {
+  margin: 5px 0;
 }

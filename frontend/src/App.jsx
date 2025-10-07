@@ -2,11 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import AuthPage from './components/auth/AuthPage';
-import Dashboard from './components/Dashboard';
+import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
+import AuthPage from './components/auth/AuthPage.jsx';
+import Dashboard from './components/Dashboard.jsx';
 import './App.css';
-import AdminDashboard from './components/admin/AdminDashboard';
+import AdminDashboard from './components/admin/AdminDashboard.jsx';
 
 import CitizenLandingPage from './citizen/CitizenLandingPage.jsx';
 import TrackProgress from './citizen/TrackProgress.jsx';

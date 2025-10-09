@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'
-import styles from './GovtDashboard.module.css'
-import { useNavigate } from 'react-router-dom'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
+import React, { useEffect, useRef, useState } from 'react';
+import styles from './GovtDashboard.module.css';
+import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, ZoomControl } from 'react-leaflet';
+import { FaMapMarkerAlt, FaSearch, FaFilter, FaExclamationTriangle, FaCalendarAlt, FaTrophy, FaSpinner } from 'react-icons/fa';
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
@@ -53,23 +54,60 @@ function HeatmapLayer({ points }) {
 
 const GovtDashboard = () => {
   const navigate = useNavigate();
-  const [issues, setIssues] = useState([])
-  const [markersVisible, setMarkersVisible] = useState(false)
-  const [selectedIssue, setSelectedIssue] = useState(null)
-  const mapRef = useRef(null)
+  const [issues, setIssues] = useState([]);
+  const [filteredIssues, setFilteredIssues] = useState([]);
+  const [markersVisible, setMarkersVisible] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all');
+  const mapRef = useRef(null);
+
+  // Stats calculation
+  const stats = {
+    total: issues.length,
+    pending: issues.filter(i => i.status === 'pending').length,
+    resolved: issues.filter(i => i.status === 'resolved').length,
+    critical: issues.filter(i => i.priority === 'high').length
+  };
 
   useEffect(() => {
     const fetchIssues = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/issues`)
-        console.debug('Fetched issues for heatmap:', res.data)
-        setIssues(res.data || [])
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/issues`);
+        setIssues(res.data || []);
+        setFilteredIssues(res.data || []);
       } catch (err) {
-        console.error('Failed to fetch issues for heatmap', err)
+        setError('Failed to fetch issues. Please try again later.');
+        console.error('Failed to fetch issues for heatmap', err);
+      } finally {
+        setIsLoading(false);
       }
+    };
+    fetchIssues();
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...issues];
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(issue => 
+        issue.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        issue.id?.toString().includes(searchTerm)
+      );
     }
-    fetchIssues()
-  }, [])
+    
+    // Apply status filter
+    if (filter !== 'all') {
+      filtered = filtered.filter(issue => issue.status === filter);
+    }
+    
+    setFilteredIssues(filtered);
+  }, [searchTerm, filter, issues]);
 
   // toggle markers based on zoom level
   function MapZoomHandler() {
@@ -133,62 +171,159 @@ const GovtDashboard = () => {
     return null;
   }
 
+  const StatusBadge = ({ status }) => (
+    <span className={`${styles.badge} ${styles[`status-${status}`]}`}>
+      {status}
+    </span>
+  );
+
   return (
     <div className={styles.wholeContainer}>
       <div className={styles.upperPart}>
-        <h1>Government Dashboard</h1>
+        <h1><FaMapMarkerAlt /> Government Dashboard</h1>
       </div>
 
-      <div className={styles.mapPortion}>
-        <div className={styles.map}>
-          <MapContainer
-            center={DEFAULT_CENTER}
-            zoom={12}
-            style={{ height: '100%', width: '100%' }}
-            whenCreated={(map) => { mapRef.current = map }}
-          >
-            <TileLayer
-              attribution='&copy; OpenStreetMap contributors'
-              url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            />
-
-            <MapZoomHandler />
-            <MapClickHandler />
-            <HeatmapLayer points={issues} />
-
-            {markersVisible && issues.map(issue => (
-              issue.latitude && issue.longitude ? (
-                <Marker key={issue.id} position={[issue.latitude, issue.longitude]} />
-              ) : null
-            ))}
-
-            {selectedIssue && selectedIssue.latitude && selectedIssue.longitude && (
-              <Marker position={[selectedIssue.latitude, selectedIssue.longitude]}>
-                <Popup>
-                  <div style={{ maxWidth: 300 }}>
-                    <h4>Issue #{selectedIssue.id}</h4>
-                    <p style={{ margin: '6px 0' }}>{selectedIssue.description || 'No description'}</p>
-                    {selectedIssue.photo ? (
-                      <img src={selectedIssue.photo} alt="evidence" style={{ width: '100%', borderRadius: 6 }} />
-                    ) : (
-                      <div style={{ color: '#666' }}>No photo provided</div>
-                    )}
-                    <div style={{ marginTop: 6, fontSize: 12, color: '#444' }}>Distance: {selectedIssue.distance} m</div>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
-          </MapContainer>
+      <div className={styles.dashboardContent}>
+        {/* Stats Panel */}
+        <div className={styles.statsPanel}>
+          <div className={styles.statCard}>
+            <h3>Total Issues</h3>
+            <p>{stats.total}</p>
+          </div>
+          <div className={styles.statCard}>
+            <h3>Pending</h3>
+            <p className={styles.warning}>{stats.pending}</p>
+          </div>
+          <div className={styles.statCard}>
+            <h3>Resolved</h3>
+            <p className={styles.success}>{stats.resolved}</p>
+          </div>
+          <div className={styles.statCard}>
+            <h3>Critical</h3>
+            <p className={styles.danger}>{stats.critical}</p>
+          </div>
         </div>
 
-        <div className={styles.adminButton}>
-          <button className={` btn btn-danger`} onClick={() => navigate('/govt-problem-page')}>Problems</button>
-          <button className={` btn btn-outline-success`} onClick={() => navigate('/govt-events')}>Events</button>
-          <button className={` btn btn-outline-success`} onClick={() => navigate('/govt-reward-page')}>Reward</button>
+        <div className={styles.mapPortion}>
+          <div className={styles.mapContainer}>
+            {/* Search and Filter Panel */}
+            <div className={styles.searchPanel}>
+              <div className={styles.searchBox}>
+                <FaSearch className={styles.searchIcon} />
+                <input
+                  type="text"
+                  placeholder="Search issues..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className={styles.filterBox}>
+                <FaFilter className={styles.filterIcon} />
+                <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                  <option value="all">All Issues</option>
+                  <option value="pending">Pending</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+            </div>
+
+            {isLoading && (
+              <div className={styles.loadingOverlay}>
+                <FaSpinner className={styles.spinner} />
+                <p>Loading map data...</p>
+              </div>
+            )}
+            
+            {error && (
+              <div className={styles.errorOverlay}>
+                <FaExclamationTriangle />
+                <p>{error}</p>
+                <button onClick={() => window.location.reload()}>Retry</button>
+              </div>
+            )}
+
+            <div className={styles.map}>
+              <MapContainer
+                center={DEFAULT_CENTER}
+                zoom={12}
+                style={{ height: '100%', width: '100%' }}
+                whenCreated={(map) => { mapRef.current = map }}
+                zoomControl={false}
+              >
+                <ZoomControl position="topright" />
+                <TileLayer
+                  attribution='&copy; OpenStreetMap contributors'
+                  url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                />
+
+                <MapZoomHandler />
+                <MapClickHandler />
+                <HeatmapLayer points={filteredIssues} />
+
+                {markersVisible && filteredIssues.map(issue => (
+                  issue.latitude && issue.longitude ? (
+                    <Marker 
+                      key={issue.id} 
+                      position={[issue.latitude, issue.longitude]}
+                    />
+                  ) : null
+                ))}
+
+                {selectedIssue && selectedIssue.latitude && selectedIssue.longitude && (
+                  <Marker position={[selectedIssue.latitude, selectedIssue.longitude]}>
+                    <Popup>
+                      <div className={styles.issuePopup}>
+                        <h4>
+                          Issue #{selectedIssue.id}
+                          <StatusBadge status={selectedIssue.status || 'pending'} />
+                        </h4>
+                        <p>{selectedIssue.description || 'No description'}</p>
+                        {selectedIssue.photo ? (
+                          <div className={styles.popupImage}>
+                            <img src={selectedIssue.photo} alt="evidence" />
+                          </div>
+                        ) : (
+                          <div className={styles.noPhoto}>No photo provided</div>
+                        )}
+                        <div className={styles.popupFooter}>
+                          <span>Priority: {selectedIssue.priority || 'medium'}</span>
+                          <span>{selectedIssue.distance}m away</span>
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                )}
+              </MapContainer>
+            </div>
+          </div>
+
+          <div className={styles.adminButton}>
+            <button 
+              className={`${styles.actionButton} ${styles.problemsButton}`} 
+              onClick={() => navigate('/govt-problem-page')}
+            >
+              <FaExclamationTriangle />
+              <span>Problems</span>
+            </button>
+            <button 
+              className={`${styles.actionButton} ${styles.eventsButton}`}
+              onClick={() => navigate('/govt-events')}
+            >
+              <FaCalendarAlt />
+              <span>Events</span>
+            </button>
+            <button 
+              className={`${styles.actionButton} ${styles.rewardButton}`}
+              onClick={() => navigate('/govt-reward-page')}
+            >
+              <FaTrophy />
+              <span>Reward</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default GovtDashboard;

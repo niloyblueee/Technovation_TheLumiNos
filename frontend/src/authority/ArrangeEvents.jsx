@@ -1,10 +1,12 @@
 import './ArrangeEvents.css';
 import { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { IoMdAdd } from "react-icons/io";
 import { MdEventAvailable } from "react-icons/md";
 import { BsCalendarDate } from "react-icons/bs";
 import { AiOutlineClockCircle } from "react-icons/ai";
 import { BiDetail } from "react-icons/bi";
+import { FaArrowLeft } from "react-icons/fa";
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -94,8 +96,16 @@ let ArrangeEvents = () => {
     setTasks(updatedTasks);
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="Event-List">
+      <button 
+        className="back-button" 
+        onClick={() => navigate('/govt-dashboard')}
+      >
+        <FaArrowLeft /> Go Back
+      </button>
       <form onSubmit={addTask}>
         <h1>Arrange Events</h1>
         <div className="form-inputs">

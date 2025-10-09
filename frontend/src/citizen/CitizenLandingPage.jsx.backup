@@ -36,8 +36,8 @@ function CitizenLandingPage() {
       setLoading(true);
       setError(null);
       try {
-        const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const url = `${base.replace(/\/$/, '')}/api/notifications`;
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const url = `${base.replace(/\/$/, '')}/api/notifications`;
         const res = await fetch(url, {
           signal: controller.signal,
           credentials: 'include',
@@ -105,15 +105,8 @@ function CitizenLandingPage() {
                 <div className="citizen-user-line">
                   <FaStar /> <strong>Reward Points:</strong> <span style={{ fontWeight: 'bold' }}>{user.reward_points ?? 0}</span>
                 </div>
-                <button
-                  className="logout-btn"
-                  onClick={() => { logout(); navigate('/auth'); }}
-                >
-                  Logout
-                </button>
               </div>
             )}
-          </div>
 
           <div className="notifications-wrapper" ref={wrapperRef}>
             <button
@@ -177,38 +170,13 @@ function CitizenLandingPage() {
           </div>
         </header>
 
-        <div className="stats-grid">
-          <div className="stat-card">
-            <h3>Total Reports</h3>
-            <p>{notifications.length || 0}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Pending Issues</h3>
-            <p>{notifications.filter(n => !n.read).length || 0}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Reward Points</h3>
-            <p>{user?.reward_points ?? 0}</p>
-          </div>
-        </div>
-
         <div className="button-row">
-          <button className="TrackProgress" onClick={() => navigate('/trackprogress')}>
-            <FaMapMarkedAlt />
-            Track Progress
-          </button>
-          <button className="IssueSubmission" onClick={() => navigate('/issue-submission')}>
-            <FaClipboardList />
-            Issue Submission
-          </button>
-          <button className="Contribution" onClick={() => navigate('/contribution')}>
-            <FaTrophy />
-            Contribution
-          </button>
+          <button className="TrackProgress" onClick={() => navigate('/trackprogress')}>Track Progress</button>
+          <button className="IssueSubmission" onClick={() => navigate('/issue-submission')}>Issue Submission</button>
+          <button className="Contribution" onClick={() => navigate('/contribution')}>Contribution</button>
         </div>
       </div>
-    </div>
-  );
+    </>
+  )
 }
-
 export default CitizenLandingPage;

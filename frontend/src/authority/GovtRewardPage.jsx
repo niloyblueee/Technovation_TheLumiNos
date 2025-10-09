@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import styles from "./GovtRewardPage.module.css";
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 
 const GovtRewardPage = () => {
-
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [citizens, setCitizens] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,12 @@ const GovtRewardPage = () => {
 
   return (
     <div className={styles.container}>
+      <button 
+        className={styles.backButton}
+        onClick={() => navigate('/govt-dashboard')}
+      >
+        <FaArrowLeft /> Go Back
+      </button>
       <h1 className={styles.title}>🏆 Reward Dashboard</h1>
       <table className={styles.table}>
         <thead>

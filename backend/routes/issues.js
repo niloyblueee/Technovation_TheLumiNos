@@ -20,7 +20,8 @@ const fetch = global.fetch || ((...args) => import('node-fetch').then(({ default
 
 async function callOpenAI(prompt) {
   const key = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  // Default to GPT-5 mini unless overridden via env; the Responses API may require different model ids.
+  let model = process.env.OPENAI_MODEL || 'gpt-5-mini';
   if (!key) {
     // Graceful local fallback when AI is not configured
     return JSON.stringify({
@@ -31,7 +32,7 @@ async function callOpenAI(prompt) {
     });
   }
 
-  const resp = await fetch('https://api.openai.com/v1/responses', {
+  let resp = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -40,16 +41,38 @@ async function callOpenAI(prompt) {
     body: JSON.stringify({
       model,
       input: prompt,
-      // Responses API expects max_output_tokens
       max_output_tokens: 400,
       temperature: 0.0,
-      // Ask the model to return strict JSON to simplify parsing
       response_format: { type: 'json_object' },
     }),
   });
   if (!resp.ok) {
     const txt = await resp.text();
-    throw new Error(`OpenAI error: ${resp.status} ${txt}`);
+    // try a model fallback if model appears invalid
+    if (/model/i.test(txt) && model !== 'gpt-4o-mini') {
+      model = 'gpt-4o-mini';
+      console.warn('[issues.validate-ai] model fallback to gpt-4o-mini');
+      resp = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: prompt,
+          max_output_tokens: 400,
+          temperature: 0.0,
+          response_format: { type: 'json_object' },
+        }),
+      });
+      if (!resp.ok) {
+        const txt2 = await resp.text();
+        throw new Error(`OpenAI error: ${resp.status} ${txt2}`);
+      }
+    } else {
+      throw new Error(`OpenAI error: ${resp.status} ${txt}`);
+    }
   }
   const data = await resp.json();
   // Attempt to extract the text from the response structure (Responses API)
@@ -77,7 +100,22 @@ async function callOpenAI(prompt) {
 router.get('/', async (req, res) => {
   const db = req.db;
   try {
-    const [rows] = await db.query('SELECT id, phone_number, coordinate, description, photo, emergency, status FROM issues');
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 0, 0), 200); // cap at 200
+    const status = req.query.status;
+    const params = [];
+    // Avoid selecting createdAt because older DBs may not have it yet
+    let sql = 'SELECT id, phone_number, coordinate, description, photo, emergency, status FROM issues';
+    if (status) {
+      sql += ' WHERE status = ?';
+      params.push(status);
+    }
+    // Order by id DESC for recency without requiring createdAt
+    sql += ' ORDER BY id DESC';
+    if (limit > 0) {
+      sql += ' LIMIT ?';
+      params.push(limit);
+    }
+    const [rows] = await db.query(sql, params);
     // coordinate is stored as "lat,lon" or "lat, lon" string. Parse into numbers.
     const parsed = rows.map(r => {
       let lat = null;

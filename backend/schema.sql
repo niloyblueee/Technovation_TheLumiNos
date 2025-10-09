@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     status ENUM('active', 'pending', 'rejected') DEFAULT 'active',
     profileImage VARCHAR(255),
     googleId VARCHAR(100) UNIQUE,
+    reward_point INT DEFAULT 0,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -54,23 +55,41 @@ CREATE TABLE IF NOT EXISTS admins (
 );
 
 CREATE TABLE IF NOT EXISTS issues (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        phone_number VARCHAR(20),
-        coordinate VARCHAR(255) NOT NULL,
-        description TEXT NOT NULL,
-        photo VARCHAR(255),
-        emergency BOOLEAN DEFAULT FALSE,
-        status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending'
-      )
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                phone_number VARCHAR(20),
+                coordinate VARCHAR(255) NOT NULL,
+                description TEXT NOT NULL,
+                photo TEXT(60000),
+                emergency BOOLEAN DEFAULT FALSE,
+                status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending',
+                assigned_department VARCHAR(100) NULL,
+                createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            );
+
+CREATE TABLE IF NOT EXISTS events (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                event_name VARCHAR(255) NOT NULL,
+                date DATE NOT NULL,
+                time TIME NOT NULL,
+                duration_minutes INT NOT NULL,
+                description TEXT,
+                createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
 
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_national_id ON users(national_id);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_status ON users(status);
+CREATE INDEX idx_users_reward_point ON users(reward_point);
 CREATE INDEX idx_citizens_user_id ON citizens(user_id);
 CREATE INDEX idx_govt_authorities_user_id ON govt_authorities(user_id);
 CREATE INDEX idx_admins_user_id ON admins(user_id);
+CREATE INDEX idx_issues_status_createdAt ON issues(status, createdAt);
+CREATE INDEX idx_issues_department ON issues(assigned_department);
+CREATE INDEX idx_events_createdAt ON events(createdAt);
+CREATE INDEX idx_events_datetime ON events(date, time);
 
 -- Insert fixed admin user (password: admin123)
 INSERT INTO users (firstName, lastName, email, password, national_id, sex, role, status) 

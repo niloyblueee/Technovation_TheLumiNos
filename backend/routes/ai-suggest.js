@@ -25,15 +25,17 @@ router.post('/suggest', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'description or photo required' });
     }
 
-    // Build prompt for OpenAI
+    // Build prompt for OpenAI: ask for strict JSON to simplify parsing on server
     const deptList = Array.isArray(departments) ? departments.join(', ') : '';
-    let prompt = `You are an assistant that reads a citizen-submitted issue and determines two things:\n`;
-    prompt += `1) Whether the issue can be validated from the provided information. If there is no photo attached respond with: 'CANNOT_VALIDATE_NO_PHOTO'.\n`;
-    prompt += `2) Suggest the most appropriate department from the following list: ${deptList}. Only return the single best match (one word).\n`;
-    prompt += `\nIssue description:\n${description || '<no description>'}\n`;
-    if (photo) {
-      prompt += `\nNote: A photo was attached. You may assume it is relevant evidence.\n`;
-    }
+    let prompt = `You are an assistant that reads a citizen-submitted issue and must respond with ONLY valid JSON in this exact shape (no prose):\n`;
+    prompt += `{"valid": boolean, "reason": string, "department": string|null}\n`;
+    prompt += `Rules:\n`;
+    prompt += `- Departments allowed: [${deptList}]. If no good match, use null.\n`;
+    prompt += `- If no photo was attached, set valid=false and reason="CANNOT_VALIDATE_NO_PHOTO".\n`;
+    prompt += `- If a photo is attached, reason MUST be a short one-line justification for the choice (<= 200 chars).\n`;
+    prompt += `- The department MUST be a single word exactly from the allowed list when applicable.\n`;
+    prompt += `Issue:\nDescription: ${description || '<no description>'}\n`;
+    prompt += `Photo: ${photo ? 'present' : 'absent'}\n`;
 
     // Use OpenAI if key provided, otherwise return a deterministic fallback
     const openaiKey = (process.env.OPENAI_API_KEY || process.env.DUMMY_OPENAI_KEY || '').trim();
@@ -54,41 +56,95 @@ router.post('/suggest', authenticateToken, async (req, res) => {
     }
 
     // Call OpenAI Chat Completions (use gpt-4o-mini or gpt-4o if available). Keep payload simple.
-    const apiUrl = 'https://api.openai.com/v1/chat/completions';
-    const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  const apiUrl = 'https://api.openai.com/v1/chat/completions';
+  // Default to GPT-5 mini unless overridden via env; fallback to gpt-4o-mini on 404
+  let model = process.env.OPENAI_MODEL || 'gpt-5-mini';
     const messages = [
       { role: 'system', content: 'You are a helpful municipal issue triage assistant.' },
       { role: 'user', content: prompt }
     ];
 
     console.log('[ai-suggest] Using OpenAI chat completions with model:', model);
-    const resp = await axios.post(apiUrl, {
-      model,
-      messages,
-      max_tokens: 200,
-      temperature: 0.2,
-    }, {
-      headers: {
-        'Authorization': `Bearer ${openaiKey}`,
-        'Content-Type': 'application/json'
+    let resp;
+    try {
+      resp = await axios.post(apiUrl, {
+        model,
+        messages,
+        max_tokens: 200,
+        temperature: 0.2,
+      }, {
+        headers: {
+          'Authorization': `Bearer ${openaiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (e) {
+      const body = e?.response?.data;
+      const isModelMissing = body && (body.error?.message?.includes('model') || body.error?.code === 'model_not_found');
+      if (isModelMissing && model !== 'gpt-4o-mini') {
+        // Retry once with a safe fallback model
+        model = 'gpt-4o-mini';
+        console.warn('[ai-suggest] model fallback to gpt-4o-mini');
+        resp = await axios.post(apiUrl, {
+          model,
+          messages,
+          max_tokens: 200,
+          temperature: 0.2,
+        }, {
+          headers: {
+            'Authorization': `Bearer ${openaiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      } else {
+        throw e;
       }
-    });
+    }
 
     const content = resp.data?.choices?.[0]?.message?.content || '';
 
-    // Simple parser: look for our special token or try to extract a department word
-    if (content.includes('CANNOT_VALIDATE_NO_PHOTO')) {
+    // Parse JSON if possible
+    let parsed = null;
+    try {
+      const idx = content.indexOf('{');
+      const jsonText = idx >= 0 ? content.slice(idx) : content;
+      parsed = JSON.parse(jsonText);
+    } catch (_) { /* fall through to heuristic fallback */ }
+
+    const hasPhoto = !!(photo && String(photo).trim().length > 0);
+    const depts = Array.isArray(departments) ? departments : [];
+
+    // Helper to sanitize department to allowed list
+    const sanitizeDept = (val) => {
+      if (!val || !depts.length) return null;
+      const match = depts.find(d => String(d).toLowerCase() === String(val).toLowerCase());
+      return match || null;
+    };
+
+    if (parsed && typeof parsed === 'object') {
+      const valid = !!parsed.valid && hasPhoto; // enforce photo presence for validation
+      const reason = typeof parsed.reason === 'string' && parsed.reason.trim().length
+        ? parsed.reason.trim().slice(0, 300)
+        : (hasPhoto ? 'Validated by AI' : 'CANNOT_VALIDATE_NO_PHOTO');
+      const department = sanitizeDept(parsed.department);
+      // If model incorrectly set CANNOT_VALIDATE_NO_PHOTO while we have a photo, override
+      if (hasPhoto && /CANNOT_VALIDATE_NO_PHOTO/i.test(reason)) {
+        return res.json({ valid: false, reason: 'Model indicated no photo but a photo was provided.', department, raw: content });
+      }
+      return res.json({ valid, reason, department, raw: content });
+    }
+
+    // Heuristic fallback when JSON parse fails
+    if (!hasPhoto) {
       return res.json({ valid: false, reason: 'CANNOT_VALIDATE_NO_PHOTO', department: null, raw: content });
     }
-
-    // Find department from provided list
     const lowered = content.toLowerCase();
-    let found = null;
-    for (const d of (departments || [])) {
-      if (lowered.includes(d.toLowerCase())) { found = d; break; }
+    let department = null;
+    for (const d of depts) {
+      if (lowered.includes(String(d).toLowerCase())) { department = d; break; }
     }
-
-    return res.json({ valid: true, reason: 'OPENAI_OK', department: found, raw: content });
+    const reason = content.trim().slice(0, 300) || 'AI suggestion available';
+    return res.json({ valid: true, reason, department, raw: content });
   } catch (err) {
     console.error('AI suggest error:', err?.response?.data || err.message);
     res.status(500).json({ message: 'AI suggestion failed' });

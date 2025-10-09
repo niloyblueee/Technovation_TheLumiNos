@@ -27,27 +27,7 @@ export default function IssueVerification() {
                 ]);
                 setIssue(issueData);
                 setDepartments(meta.departments || []);
-                // trigger AI suggestion after we have the issue
-                try {
-                    setAiLoading(true);
-                    const payload = {
-                        description: issueData.description || '',
-                        photo: issueData.photo || '',
-                        departments: meta.departments || [],
-                    };
-                    const { data: ai } = await axios.post(`${base}/api/ai/suggest`, payload);
-                    setAiResult(ai);
-                    // If a department is suggested, preselect it (non-destructive)
-                    if (ai && ai.department && !selectedDept) {
-                        setSelectedDept(ai.department);
-                    }
-                } catch (ae) {
-                    console.warn('AI suggestion failed', ae);
-                    setAiResult({ error: ae.response?.data?.message || ae.message });
-                } finally {
-                    setAiLoading(false);
-                }
-                // trigger AI suggestion after we have the issue
+                // trigger AI suggestion after we have the issue (once)
                 try {
                     setAiLoading(true);
                     const payload = {

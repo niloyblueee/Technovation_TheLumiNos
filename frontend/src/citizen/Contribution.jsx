@@ -4,12 +4,25 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './Contribution.css';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import CitizenNav from './CitizenNav';
 
 const ContributionPage = () => {
     const { user, isAuthenticated } = useAuth();
     const [myIssues, setMyIssues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // First, let's install the required icons package
+    useEffect(() => {
+        const installIcons = async () => {
+            try {
+                await import('react-icons/fa');
+            } catch (error) {
+                console.error('Failed to load icons:', error);
+            }
+        };
+        installIcons();
+    }, []);
 
     // Placeholder: leave as-is (user trash collection etc.)
     const historyData = [
@@ -80,80 +93,83 @@ const ContributionPage = () => {
     };
 
     return (
-        <div className="contribution-page">
-            <h1 className="main-title">Thank You For keeping Your Own Area Clean and sustainable</h1>
-            <p className="sub-title">Track Your Contributions</p>
-            <div className="content-container">
-                {/* Left Panel: Reported Issues and Points */}
-                <div className="panel left-panel">
-                    <div className="panel-header">
-                        <div className="header-item">Reported Issue</div>
-                        <div className="header-item">Points</div>
-                    </div>
-                    {loading && (
-                        <div className="list-item">
-                            <div className="list-text">Loading your reported issues…</div>
-                            <div className="list-text">—</div>
+        <>
+            <CitizenNav />
+            <div className="contribution-page citizen-content">
+                <h1 className="main-title">Thank You For keeping Your Own Area Clean and sustainable</h1>
+                <p className="sub-title">Track Your Contributions</p>
+                <div className="content-container">
+                    {/* Left Panel: Reported Issues and Points */}
+                    <div className="panel left-panel">
+                        <div className="panel-header">
+                            <div className="header-item">Reported Issue</div>
+                            <div className="header-item">Points</div>
                         </div>
-                    )}
-                    {error && (
-                        <div className="list-item" style={{ color: 'red' }}>
-                            <div className="list-text">{error}</div>
-                            <div className="list-text">—</div>
-                        </div>
-                    )}
-                    {!loading && !error && computed.rows.length === 0 && (
-                        <div className="list-item">
-                            <div className="list-text">No reported issues yet</div>
-                            <div className="list-text">0</div>
-                        </div>
-                    )}
-                    {!loading && !error && computed.rows.map((row) => (
-                        <div key={row.id} className="list-item">
-                            <div className="list-text">{row.label}{row.emergency ? ' (Emergency)' : ''}</div>
-                            <div className="list-text">{row.points}/{row.max}</div>
-                        </div>
-                    ))}
-
-                    {/* Total points button (used for yearly award) */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-                        <button className="redeem-button" title="Total points used for yearly award">
-                            Total Points: {computed.total}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Right Panels: Awards and History */}
-                <div className="right-panels">
-                    {/* Top Right Panel: Cleanliness Awards */}
-                    <div className="panel award-panel">
-                        <h2 className="panel-title">CleanLiness Awards</h2>
-                        <div className="award-item">
-                            <div className="award-label">Clean Point</div>
-                            <div className="award-value">{cleanPoints}</div>
-                        </div>
-                        <div className="award-item">
-                            <div className="award-label">Redeemable</div>
-                            <div className="award-value">{cleanRedeemable} Tk</div>
-                        </div>
-                        <button className="redeem-button" onClick={handleRedeemClick}>
-                            Online Redeem Options
-                        </button>
-                    </div>
-
-                    {/* Bottom Right Panel: History */}
-                    <div className="panel history-panel">
-                        <h2 className="panel-title">HISTORY</h2>
-                        {historyData.map((item, index) => (
-                            <div key={index} className="list-item">
-                                <div className="list-text">{item.item}</div>
-                                <div className="list-text">{item.count}</div>
+                        {loading && (
+                            <div className="list-item">
+                                <div className="list-text">Loading your reported issues…</div>
+                                <div className="list-text">—</div>
+                            </div>
+                        )}
+                        {error && (
+                            <div className="list-item" style={{ color: 'red' }}>
+                                <div className="list-text">{error}</div>
+                                <div className="list-text">—</div>
+                            </div>
+                        )}
+                        {!loading && !error && computed.rows.length === 0 && (
+                            <div className="list-item">
+                                <div className="list-text">No reported issues yet</div>
+                                <div className="list-text">0</div>
+                            </div>
+                        )}
+                        {!loading && !error && computed.rows.map((row) => (
+                            <div key={row.id} className="list-item">
+                                <div className="list-text">{row.label}{row.emergency ? ' (Emergency)' : ''}</div>
+                                <div className="list-text">{row.points}/{row.max}</div>
                             </div>
                         ))}
+
+                        {/* Total points button (used for yearly award) */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                            <button className="redeem-button" title="Total points used for yearly award">
+                                Total Points: {computed.total}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Right Panels: Awards and History */}
+                    <div className="right-panels">
+                        {/* Top Right Panel: Cleanliness Awards */}
+                        <div className="panel award-panel">
+                            <h2 className="panel-title">CleanLiness Awards</h2>
+                            <div className="award-item">
+                                <div className="award-label">Clean Point</div>
+                                <div className="award-value">{cleanPoints}</div>
+                            </div>
+                            <div className="award-item">
+                                <div className="award-label">Redeemable</div>
+                                <div className="award-value">{cleanRedeemable} Tk</div>
+                            </div>
+                            <button className="redeem-button" onClick={handleRedeemClick}>
+                                Online Redeem Options
+                            </button>
+                        </div>
+
+                        {/* Bottom Right Panel: History */}
+                        <div className="panel history-panel">
+                            <h2 className="panel-title">HISTORY</h2>
+                            {historyData.map((item, index) => (
+                                <div key={index} className="list-item">
+                                    <div className="list-text">{item.item}</div>
+                                    <div className="list-text">{item.count}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

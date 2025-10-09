@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './TrackProgress.css';
 import { useAuth } from '../contexts/AuthContext';
+import CitizenNav from './CitizenNav';
 
 function TrackProgress() {
   const { user, isAuthenticated } = useAuth();
@@ -72,41 +73,44 @@ function TrackProgress() {
   };
 
   return (
-    <div className="tp-container">
-      <div className="tp-card">
-        <h1 className="tp-title">Flagged Problems</h1>
+    <>
+      <CitizenNav />
+      <div className="tp-container citizen-content">
+        <div className="tp-card">
+          <h1 className="tp-title">Flagged Problems</h1>
 
-        <div className="tp-list">
-          <div className="tp-header">
-            <div className="tp-header-cell">Problems</div>
-            <div className="tp-header-cell">Status</div>
-          </div>
-
-          {loading && (
-            <div className="tp-loading">Loading problems...</div>
-          )}
-
-          {error && (
-            <div className="tp-error">Error: {error}</div>
-          )}
-
-          {problems.map((problem) => (
-            <div key={problem.id} className="tp-row">
-              <div className="tp-problem">{problem.title}</div>
-              <div className="tp-status">
-                <span className={`tp-status-badge ${getStatusClass(problem.status)}`}>
-                  {problem.status}
-                </span>
-              </div>
+          <div className="tp-list">
+            <div className="tp-header">
+              <div className="tp-header-cell">Problems</div>
+              <div className="tp-header-cell">Status</div>
             </div>
-          ))}
 
-          {problems.length === 0 && (
-            <div className="tp-empty">No flagged problems at this time.</div>
-          )}
+            {loading && (
+              <div className="tp-loading">Loading problems...</div>
+            )}
+
+            {error && (
+              <div className="tp-error">Error: {error}</div>
+            )}
+
+            {problems.map((problem) => (
+              <div key={problem.id} className="tp-row">
+                <div className="tp-problem">{problem.title}</div>
+                <div className="tp-status">
+                  <span className={`tp-status-badge ${getStatusClass(problem.status)}`}>
+                    {problem.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {problems.length === 0 && (
+              <div className="tp-empty">No flagged problems at this time.</div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -1,55 +1,81 @@
 /* Container */
-.tp-container {
-  width: 100%;
+.tp-container.citizen-content {
+    min-height: calc(100vh - 80px);
+    background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
+    padding-top: 2rem;
+
+/* Back Button */
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
   display: flex;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(25, 25, 25, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #00e5ff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.back-button:hover {
+  background: rgba(0, 229, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 229, 255, 0.2);
 }
 
 /* Card */
 .tp-card {
-  width: 100%;
-  max-width: 900px;
-  border: 2px solid #000;
-  border-radius: 10px;
-  padding: 18px;
-  background: #fff;
-  box-shadow: 8px 8px 0 0 #000;
+  background: rgba(25, 25, 25, 0.7);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  padding: 30px 40px;
+  width: 90%;
+  max-width: 1200px;
+  margin: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Title */
 .tp-title {
   text-align: center;
-  margin: 0 0 16px 0;
-  padding: 8px 12px;
-  display: inline-block;
-  border: 2px solid #000;
-  border-radius: 8px;
-  background: #fff;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  box-shadow: 4px 4px 0 0 #000;
+  margin: 0 0 25px 0;
+  color: #00e5ff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
 /* List area */
 .tp-list {
-  margin-top: 12px;
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
 
 /* Header row */
 .tp-header {
   display: flex;
   gap: 12px;
-  padding: 10px;
-  font-weight: 700;
-  border-bottom: 2px solid #eee;
+  padding: 15px 20px;
+  font-weight: 600;
+  background: rgba(0, 229, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tp-header-cell {
   flex: 1;
   text-align: left;
+  color: #00e5ff;
 }
 
 /* Rows */
@@ -57,14 +83,20 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 10px;
-  border-bottom: 1px dashed #ddd;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.tp-row:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .tp-problem {
   flex: 2;
   text-align: left;
   font-size: 1rem;
+  color: #eaeaea;
 }
 
 .tp-status {
@@ -76,41 +108,44 @@
 /* Status badge */
 .tp-status-badge {
   display: inline-block;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  border: 2px solid rgba(0,0,0,0.15);
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 /* Badge color variants */
 .badge-completed {
-  background: #16a34a; /* green-600 */
-  color: #f0fff4;
-  border-color: #115e35;
+  background: rgba(76, 175, 80, 0.2);
+  color: #69f0ae;
+  border: 1px solid rgba(76, 175, 80, 0.5);
 }
 
 .badge-progress {
-  background: #2563eb; /* blue-600 */
-  color: #eff6ff;
-  border-color: #1e3a8a;
+  background: rgba(0, 188, 212, 0.2);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.5);
 }
 
 .badge-pending {
-  background: #f59e0b; /* amber-500 */
-  color: #fffbeb;
-  border-color: #92400e;
+  background: rgba(244, 67, 54, 0.2);
+  color: #ff8a80;
+  border: 1px solid rgba(244, 67, 54, 0.5);
 }
 
 .badge-default {
-  background: #6b7280; /* gray-500 */
-  color: #f8fafc;
-  border-color: #374151;
+  background: rgba(158, 158, 158, 0.2);
+  color: #eaeaea;
+  border: 1px solid rgba(158, 158, 158, 0.5);
 }
 
 /* Empty state */
 .tp-empty {
-  padding: 18px;
+  padding: 30px;
   text-align: center;
-  color: #6b7280;
+  color: #eaeaea;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin: 20px 0;
 }

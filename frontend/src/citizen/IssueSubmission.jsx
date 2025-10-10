@@ -236,7 +236,7 @@ const IssueSubmissionWithMap = () => {
           status: jsonPayload.status,
         });
         console.log('Issue submitted successfully:', response.data);
-        navigate('/citizen/track-progress');
+        navigate('/track-progress');
       } catch (error) {
         console.error('Error submitting issue:', error);
       }

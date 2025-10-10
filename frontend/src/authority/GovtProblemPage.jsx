@@ -78,7 +78,7 @@ const GovtProblemPage = () => {
     <div className={styles.pageBackground}>
       <div className={styles.GovtProblemContainer}>
         <div className={styles.headerRow}>
-          <button 
+          <button
             className={styles.backButton}
             onClick={() => navigate('/govt-dashboard')}
           >

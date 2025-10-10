@@ -33,6 +33,7 @@ router.post('/suggest', authenticateToken, async (req, res) => {
     prompt += `- Departments allowed: [${deptList}]. If no good match, use null.\n`;
     prompt += `- If no photo was attached, set valid=false and reason="CANNOT_VALIDATE_NO_PHOTO".\n`;
     prompt += `- If a photo is attached, reason MUST be a short one-line justification for the choice (<= 200 chars).\n`;
+    prompt += `- People may prank by uploading their photo or mismatch content between description and photo, beware of that\n`;
     prompt += `- The department MUST be a single word exactly from the allowed list when applicable.\n`;
     prompt += `Issue:\nDescription: ${description || '<no description>'}\n`;
     prompt += `Photo: ${photo ? 'present' : 'absent'}\n`;
@@ -56,9 +57,9 @@ router.post('/suggest', authenticateToken, async (req, res) => {
     }
 
     // Call OpenAI Chat Completions (use gpt-4o-mini or gpt-4o if available). Keep payload simple.
-  const apiUrl = 'https://api.openai.com/v1/chat/completions';
-  // Default to GPT-5 mini unless overridden via env; fallback to gpt-4o-mini on 404
-  let model = process.env.OPENAI_MODEL || 'gpt-5-mini';
+    const apiUrl = 'https://api.openai.com/v1/chat/completions';
+    // Default to GPT-5 mini unless overridden via env; fallback to gpt-4o-mini on 404
+    let model = process.env.OPENAI_MODEL || 'gpt-5-mini';
     const messages = [
       { role: 'system', content: 'You are a helpful municipal issue triage assistant.' },
       { role: 'user', content: prompt }
@@ -123,14 +124,25 @@ router.post('/suggest', authenticateToken, async (req, res) => {
 
     if (parsed && typeof parsed === 'object') {
       const valid = !!parsed.valid && hasPhoto; // enforce photo presence for validation
-      const reason = typeof parsed.reason === 'string' && parsed.reason.trim().length
-        ? parsed.reason.trim().slice(0, 300)
-        : (hasPhoto ? 'Validated by AI' : 'CANNOT_VALIDATE_NO_PHOTO');
+      const rawReason = typeof parsed.reason === 'string' ? parsed.reason.trim() : '';
+      let reason = rawReason ? rawReason.slice(0, 300) : '';
       const department = sanitizeDept(parsed.department);
-      // If model incorrectly set CANNOT_VALIDATE_NO_PHOTO while we have a photo, override
-      if (hasPhoto && /CANNOT_VALIDATE_NO_PHOTO/i.test(reason)) {
-        return res.json({ valid: false, reason: 'Model indicated no photo but a photo was provided.', department, raw: content });
+
+      if (!valid) {
+        if (!reason) {
+          reason = 'AI could not validate the issue.';
+        } else if (hasPhoto && /CANNOT_VALIDATE_NO_PHOTO/i.test(reason)) {
+          console.warn('[ai-suggest] Model referenced missing photo despite one being provided.');
+          reason = 'AI could not validate; it did not recognize a usable photo for verification.';
+        }
+      } else {
+        reason = reason || 'Validated by AI';
+        if (hasPhoto && /CANNOT_VALIDATE_NO_PHOTO/i.test(rawReason)) {
+          console.warn('[ai-suggest] Model validated issue but mentioned missing photo.');
+          reason = 'AI validated the issue despite noting a photo mismatch; please double-check.';
+        }
       }
+
       return res.json({ valid, reason, department, raw: content });
     }
 

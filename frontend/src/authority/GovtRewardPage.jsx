@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import styles from "./GovtRewardPage.module.css";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import { FaArrowLeft, FaSignOutAlt } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 
 const GovtRewardPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [citizens, setCitizens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,14 +63,25 @@ const GovtRewardPage = () => {
     );
   }
 
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+  };
+
   return (
     <div className={styles.container}>
-      <button 
-        className={styles.backButton}
-        onClick={() => navigate('/govt-dashboard')}
-      >
-        <FaArrowLeft /> Go Back
-      </button>
+      <div className={styles.headerRow}>
+        <button
+          className={styles.backButton}
+          onClick={() => navigate('/govt-dashboard')}
+        >
+          <FaArrowLeft /> Go Back
+        </button>
+        <button className={styles.logoutButton} onClick={handleLogout}>
+          <FaSignOutAlt />
+          <span>Logout</span>
+        </button>
+      </div>
       <h1 className={styles.title}>🏆 Reward Dashboard</h1>
       <table className={styles.table}>
         <thead>

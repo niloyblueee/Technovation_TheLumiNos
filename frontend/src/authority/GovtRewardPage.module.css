@@ -1,3 +1,13 @@
+/* === Header Layout === */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
 /* === Back Button === */
 .backButton {
   display: flex;
@@ -12,14 +22,38 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 20px;
-  align-self: flex-start;
 }
 
 .backButton:hover {
   background: rgba(0, 229, 255, 0.1);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 229, 255, 0.2);
+}
+
+/* === Logout Button === */
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00e5ff, #2979ff);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.logoutButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
+}
+
+.logoutButton:focus-visible {
+  outline: 2px solid rgba(0, 229, 255, 0.7);
+  outline-offset: 2px;
 }
 
 /* === Base Container === */
@@ -33,17 +67,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 20px;
 }
 
-/* === Title === */
-.title {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #00e5ff;
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+.container>.headerRow {
+  align-self: stretch;
 }
 
 /* === Table === */
@@ -119,4 +147,37 @@
   color: #ff6b6b !important;
   font-weight: 500;
   text-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+}
+
+@media screen and (max-width: 768px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: 100%;
+  }
+
+  .logoutButton {
+    justify-content: center;
+  }
+
+  .table {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .headerRow {
+    gap: 10px;
+  }
+
+  .headerRow>button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
 }

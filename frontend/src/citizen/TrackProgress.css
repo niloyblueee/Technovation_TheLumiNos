@@ -3,7 +3,7 @@
     min-height: calc(100vh - 80px);
     background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
     padding-top: 2rem;
-
+}
 /* Back Button */
 .back-button {
   position: absolute;

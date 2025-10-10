@@ -20,14 +20,20 @@ body {
   margin: 60px auto;
   color: #f5f5f5;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 2px;
 }
 
 /* === Back Button === */
 .back-button {
-  position: absolute;
-  top: -40px;
-  left: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -46,6 +52,32 @@ body {
   background: rgba(0, 229, 255, 0.1);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 229, 255, 0.2);
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00e5ff, #2979ff);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-left: auto;
+}
+
+.logout-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
+}
+
+.logout-button:focus-visible {
+  outline: 2px solid rgba(0, 229, 255, 0.7);
+  outline-offset: 2px;
 }
 
 /* === Heading === */
@@ -185,6 +217,17 @@ ol li:hover {
     margin: 40px auto;
   }
 
+  .header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .logout-button {
+    justify-content: center;
+    margin-left: 0;
+  }
+
   .form-inputs {
     grid-template-columns: 1fr 1fr;
     gap: 12px;
@@ -205,6 +248,17 @@ ol li:hover {
     padding: 15px;
     margin: 20px auto;
     border-radius: 12px;
+  }
+
+  .header-row {
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  .header-row>button {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
   }
 
   .form-inputs {

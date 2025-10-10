@@ -6,12 +6,12 @@ import { MdEventAvailable } from "react-icons/md";
 import { BsCalendarDate } from "react-icons/bs";
 import { AiOutlineClockCircle } from "react-icons/ai";
 import { BiDetail } from "react-icons/bi";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaSignOutAlt } from "react-icons/fa";
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
 let ArrangeEvents = () => {
-  const { isAuthenticated } = useAuth();
+  const { logout } = useAuth();
   let [tasks, setTasks] = useState([]);
   let [newTask, setNewTask] = useState("");
   let [newDate, setNewDate] = useState("");
@@ -98,14 +98,25 @@ let ArrangeEvents = () => {
 
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+  };
+
   return (
     <div className="Event-List">
-      <button 
-        className="back-button" 
-        onClick={() => navigate('/govt-dashboard')}
-      >
-        <FaArrowLeft /> Go Back
-      </button>
+      <div className="header-row">
+        <button
+          className="back-button"
+          onClick={() => navigate('/govt-dashboard')}
+        >
+          <FaArrowLeft /> Go Back
+        </button>
+        <button className="logout-button" onClick={handleLogout}>
+          <FaSignOutAlt />
+          <span>Logout</span>
+        </button>
+      </div>
       <form onSubmit={addTask}>
         <h1>Arrange Events</h1>
         <div className="form-inputs">

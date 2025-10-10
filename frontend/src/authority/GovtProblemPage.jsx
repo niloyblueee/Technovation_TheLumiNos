@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import styles from './GovtProblemPage.module.css'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
-import { FaArrowLeft } from 'react-icons/fa'
+import { FaArrowLeft, FaSignOutAlt } from 'react-icons/fa'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 // fix marker icons
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
@@ -39,6 +40,7 @@ function HeatmapLayer({ points }) {
 }
 
 const GovtProblemPage = () => {
+  const { logout } = useAuth()
   const [issues, setIssues] = useState([]);
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [markersVisible, setMarkersVisible] = useState(false);
@@ -67,15 +69,26 @@ const GovtProblemPage = () => {
     return null;
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate('/auth')
+  }
+
   return (
     <div className={styles.pageBackground}>
       <div className={styles.GovtProblemContainer}>
-        <button 
-          className={styles.backButton}
-          onClick={() => navigate('/govt-dashboard')}
-        >
-          <FaArrowLeft /> Go Back
-        </button>
+        <div className={styles.headerRow}>
+          <button 
+            className={styles.backButton}
+            onClick={() => navigate('/govt-dashboard')}
+          >
+            <FaArrowLeft /> Go Back
+          </button>
+          <button className={styles.logoutButton} onClick={handleLogout}>
+            <FaSignOutAlt />
+            <span>Logout</span>
+          </button>
+        </div>
         <h1>Reported Problems & Progress</h1>
 
         <div className={styles.mapSection}>

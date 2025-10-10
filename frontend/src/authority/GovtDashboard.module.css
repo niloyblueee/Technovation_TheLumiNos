@@ -23,6 +23,8 @@
   font-weight: 600;
   letter-spacing: 1px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  position: relative;
+  padding: 0 20px;
 }
 
 .upperPart h1 {
@@ -30,6 +32,42 @@
   align-items: center;
   gap: 10px;
   font-size: 1.5rem;
+}
+
+.logoutButton {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00e5ff, #2979ff);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.logoutButton:hover {
+  transform: translateY(-50%) translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
+}
+
+.logoutButton:focus-visible {
+  outline: 2px solid rgba(0, 229, 255, 0.7);
+  outline-offset: 2px;
+}
+
+@media screen and (max-width: 480px) {
+  .logoutButton {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
 }
 
 .dashboardContent {
@@ -106,9 +144,17 @@
   font-weight: 600;
 }
 
-.warning { color: #ffd700; }
-.success { color: #00e676; }
-.danger { color: #ff1744; }
+.warning {
+  color: #ffd700;
+}
+
+.success {
+  color: #00e676;
+}
+
+.danger {
+  color: #ff1744;
+}
 
 .mapPortion {
   height: calc(100vh - 50px);
@@ -130,9 +176,10 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
   }
-  
+
   .mapContainer {
-    height: 60vh; /* Adjust map height for mobile */
+    height: 60vh;
+    /* Adjust map height for mobile */
   }
 }
 
@@ -160,7 +207,8 @@
   gap: 10px;
 }
 
-.searchBox, .filterBox {
+.searchBox,
+.filterBox {
   flex: 1;
   position: relative;
   background: rgba(25, 25, 25, 0.9);
@@ -178,12 +226,14 @@
     gap: 8px;
   }
 
-  .searchBox input, .filterBox select {
+  .searchBox input,
+  .filterBox select {
     padding: 8px 30px;
     font-size: 0.85rem;
   }
 
-  .searchIcon, .filterIcon {
+  .searchIcon,
+  .filterIcon {
     font-size: 0.9rem;
   }
 }
@@ -194,12 +244,14 @@
     gap: 5px;
   }
 
-  .searchBox, .filterBox {
+  .searchBox,
+  .filterBox {
     width: 100%;
   }
 }
 
-.searchBox input, .filterBox select {
+.searchBox input,
+.filterBox select {
   width: 100%;
   padding: 10px 35px;
   background: transparent;
@@ -208,12 +260,14 @@
   font-size: 0.9rem;
 }
 
-.searchBox input:focus, .filterBox select:focus {
+.searchBox input:focus,
+.filterBox select:focus {
   outline: none;
   border-color: #00e5ff;
 }
 
-.searchIcon, .filterIcon {
+.searchIcon,
+.filterIcon {
   position: absolute;
   left: 10px;
   top: 50%;
@@ -259,17 +313,20 @@
   }
 
   .actionButton {
-    width: calc(33.33% - 10px); /* 3 buttons per row with gap */
+    width: calc(33.33% - 10px);
+    /* 3 buttons per row with gap */
     min-width: 100px;
     padding: 12px;
   }
 
   .actionButton span {
-    display: none; /* Hide text on very small screens */
+    display: none;
+    /* Hide text on very small screens */
   }
 
   .actionButton svg {
-    font-size: 1.5rem; /* Larger icons when text is hidden */
+    font-size: 1.5rem;
+    /* Larger icons when text is hidden */
   }
 }
 
@@ -281,7 +338,8 @@
   }
 
   .actionButton {
-    width: calc(50% - 8px); /* 2 buttons per row on very small screens */
+    width: calc(50% - 8px);
+    /* 2 buttons per row on very small screens */
     padding: 10px;
   }
 }
@@ -294,7 +352,8 @@
   background: linear-gradient(135deg, #ff1744, #ff5252);
 }
 
-.eventsButton, .rewardButton {
+.eventsButton,
+.rewardButton {
   background: linear-gradient(135deg, #00e5ff, #2979ff);
 }
 
@@ -308,6 +367,7 @@
   background: linear-gradient(135deg, #ff1744, #ff5252);
   border: none;
 }
+
 .adminButton .btn-danger:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 12px rgba(255, 82, 82, 0.4);
@@ -318,6 +378,7 @@
   background: linear-gradient(135deg, #00e5ff, #2979ff);
   border: none;
 }
+
 .adminButton .btn-outline-success:hover {
   transform: translateY(-2px);
   background: linear-gradient(135deg, #00bfa5, #00e5ff);
@@ -333,7 +394,8 @@
   backdrop-filter: blur(12px);
 }
 
-.loadingOverlay, .errorOverlay {
+.loadingOverlay,
+.errorOverlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -356,8 +418,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .errorOverlay {

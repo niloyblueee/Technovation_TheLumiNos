@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import styles from './GovtDashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, ZoomControl } from 'react-leaflet';
-import { FaMapMarkerAlt, FaSearch, FaFilter, FaExclamationTriangle, FaCalendarAlt, FaTrophy, FaSpinner } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaSearch, FaFilter, FaExclamationTriangle, FaCalendarAlt, FaTrophy, FaSpinner, FaSignOutAlt } from 'react-icons/fa';
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import axios from 'axios'
+import { useAuth } from '../contexts/AuthContext';
 
 // ensure default marker icons load correctly with Vite
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
@@ -54,6 +55,7 @@ function HeatmapLayer({ points }) {
 
 const GovtDashboard = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [issues, setIssues] = useState([]);
   const [filteredIssues, setFilteredIssues] = useState([]);
   const [markersVisible, setMarkersVisible] = useState(false);
@@ -92,20 +94,20 @@ const GovtDashboard = () => {
 
   useEffect(() => {
     let filtered = [...issues];
-    
+
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(issue => 
+      filtered = filtered.filter(issue =>
         issue.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         issue.id?.toString().includes(searchTerm)
       );
     }
-    
+
     // Apply status filter
     if (filter !== 'all') {
       filtered = filtered.filter(issue => issue.status === filter);
     }
-    
+
     setFilteredIssues(filtered);
   }, [searchTerm, filter, issues]);
 
@@ -177,10 +179,19 @@ const GovtDashboard = () => {
     </span>
   );
 
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+  };
+
   return (
     <div className={styles.wholeContainer}>
       <div className={styles.upperPart}>
         <h1><FaMapMarkerAlt /> Government Dashboard</h1>
+        <button className={styles.logoutButton} onClick={handleLogout}>
+          <FaSignOutAlt />
+          <span>Logout</span>
+        </button>
       </div>
 
       <div className={styles.dashboardContent}>
@@ -233,7 +244,7 @@ const GovtDashboard = () => {
                 <p>Loading map data...</p>
               </div>
             )}
-            
+
             {error && (
               <div className={styles.errorOverlay}>
                 <FaExclamationTriangle />
@@ -262,8 +273,8 @@ const GovtDashboard = () => {
 
                 {markersVisible && filteredIssues.map(issue => (
                   issue.latitude && issue.longitude ? (
-                    <Marker 
-                      key={issue.id} 
+                    <Marker
+                      key={issue.id}
                       position={[issue.latitude, issue.longitude]}
                     />
                   ) : null
@@ -298,21 +309,21 @@ const GovtDashboard = () => {
           </div>
 
           <div className={styles.adminButton}>
-            <button 
-              className={`${styles.actionButton} ${styles.problemsButton}`} 
+            <button
+              className={`${styles.actionButton} ${styles.problemsButton}`}
               onClick={() => navigate('/govt-problem-page')}
             >
               <FaExclamationTriangle />
               <span>Problems</span>
             </button>
-            <button 
+            <button
               className={`${styles.actionButton} ${styles.eventsButton}`}
               onClick={() => navigate('/govt-events')}
             >
               <FaCalendarAlt />
               <span>Events</span>
             </button>
-            <button 
+            <button
               className={`${styles.actionButton} ${styles.rewardButton}`}
               onClick={() => navigate('/govt-reward-page')}
             >

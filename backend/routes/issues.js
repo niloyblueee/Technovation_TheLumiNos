@@ -104,7 +104,7 @@ router.get('/', async (req, res) => {
     const status = req.query.status;
     const params = [];
     // Avoid selecting createdAt because older DBs may not have it yet
-    let sql = 'SELECT id, phone_number, coordinate, description, photo, emergency, status FROM issues';
+    let sql = 'SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text FROM issues';
     if (status) {
       sql += ' WHERE status = ?';
       params.push(status);
@@ -130,6 +130,24 @@ router.get('/', async (req, res) => {
           }
         }
       }
+      let assignedDepartments = null;
+      if (r.assigned_department) {
+        if (Array.isArray(r.assigned_department)) {
+          assignedDepartments = r.assigned_department;
+        } else {
+          try {
+            const parsed = JSON.parse(r.assigned_department);
+            if (Array.isArray(parsed)) {
+              assignedDepartments = parsed.map(String);
+            } else if (typeof parsed === 'string') {
+              assignedDepartments = [parsed];
+            }
+          } catch (_) {
+            assignedDepartments = String(r.assigned_department).split(',').map(s => s.trim()).filter(Boolean);
+          }
+        }
+      }
+
       return {
         id: r.id,
         phone_number: r.phone_number,
@@ -137,6 +155,11 @@ router.get('/', async (req, res) => {
         photo: r.photo,
         emergency: !!r.emergency,
         status: r.status,
+        assigned_departments: assignedDepartments,
+        assigned_department: assignedDepartments ? assignedDepartments.join(', ') : null,
+        description_pic_ai: r.description_pic_ai || null,
+        validation: r.validation === 1 || r.validation === true || r.validation === '1',
+        reason_text: r.reason_text || null,
         latitude: lat,
         longitude: lon,
       };
@@ -156,7 +179,7 @@ router.get('/meta/departments', (req, res) => {
 // Get single issue
 router.get('/:id', async (req, res) => {
   try {
-    const [rows] = await req.db.query('SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department FROM issues WHERE id = ?', [req.params.id]);
+    const [rows] = await req.db.query('SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text FROM issues WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ message: 'Issue not found' });
     const r = rows[0];
     let lat = null, lon = null;
@@ -168,6 +191,20 @@ router.get('/:id', async (req, res) => {
         if (!Number.isNaN(a) && !Number.isNaN(b)) { lat = a; lon = b; }
       }
     }
+    let assignedDepartments = null;
+    if (r.assigned_department) {
+      try {
+        const parsed = JSON.parse(r.assigned_department);
+        if (Array.isArray(parsed)) {
+          assignedDepartments = parsed.map(String);
+        } else if (typeof parsed === 'string') {
+          assignedDepartments = [parsed];
+        }
+      } catch (_) {
+        assignedDepartments = String(r.assigned_department).split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+
     res.json({
       id: r.id,
       phone_number: r.phone_number,
@@ -175,7 +212,11 @@ router.get('/:id', async (req, res) => {
       photo: r.photo,
       emergency: !!r.emergency,
       status: r.status,
-      assigned_department: r.assigned_department || null,
+      assigned_departments: assignedDepartments,
+      assigned_department: assignedDepartments ? assignedDepartments.join(', ') : null,
+      description_pic_ai: r.description_pic_ai || null,
+      validation: r.validation === 1 || r.validation === true || r.validation === '1',
+      reason_text: r.reason_text || null,
       latitude: lat,
       longitude: lon,
     });
@@ -197,11 +238,36 @@ router.post('/:id/verify', authenticateToken, async (req, res) => {
     }
 
     let newStatus = action === 'approve' ? 'in_progress' : 'rejected';
-    const params = [newStatus, department || null, req.params.id];
+    let assignedValue = null;
+    if (Array.isArray(department)) {
+      const cleanArr = department.map(String).map(s => s.trim()).filter(Boolean);
+      assignedValue = cleanArr.length ? JSON.stringify(cleanArr) : null;
+    } else if (typeof department === 'string' && department.trim()) {
+      assignedValue = JSON.stringify([department.trim()]);
+    }
+
+    const params = [newStatus, assignedValue, req.params.id];
     await req.db.execute('UPDATE issues SET status = ?, assigned_department = ? WHERE id = ?', params);
 
-    const [[updated]] = await req.db.execute('SELECT id, status, assigned_department FROM issues WHERE id = ?', [req.params.id]);
-    res.json({ message: 'Issue updated', issue: updated });
+    const [[updatedRaw]] = await req.db.execute('SELECT id, status, assigned_department FROM issues WHERE id = ?', [req.params.id]);
+    if (!updatedRaw) {
+      return res.status(404).json({ message: 'Issue not found after update' });
+    }
+
+    let parsedAssigned = null;
+    if (updatedRaw.assigned_department) {
+      try {
+        const parsed = JSON.parse(updatedRaw.assigned_department);
+        if (Array.isArray(parsed)) {
+          parsedAssigned = parsed.map(String);
+        } else if (typeof parsed === 'string') {
+          parsedAssigned = [parsed];
+        }
+      } catch (_) {
+        parsedAssigned = String(updatedRaw.assigned_department).split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+    res.json({ message: 'Issue updated', issue: { id: updatedRaw.id, status: updatedRaw.status, assigned_departments: parsedAssigned, assigned_department: parsedAssigned ? parsedAssigned.join(', ') : null } });
   } catch (err) {
     console.error('Verify issue error:', err);
     res.status(500).json({ message: 'Failed to verify issue' });

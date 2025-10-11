@@ -11,7 +11,7 @@ export default function IssueVerification() {
 
     const [issue, setIssue] = useState(null);
     const [departments, setDepartments] = useState([]);
-    const [selectedDept, setSelectedDept] = useState('');
+    const [selectedDepts, setSelectedDepts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [aiResult, setAiResult] = useState(null);
@@ -26,6 +26,7 @@ export default function IssueVerification() {
                     axios.get(`${base}/api/issues/meta/departments`),
                 ]);
                 setIssue(issueData);
+                setSelectedDepts(Array.isArray(issueData.assigned_departments) ? issueData.assigned_departments : []);
                 setDepartments(meta.departments || []);
                 // trigger AI suggestion after we have the issue (once)
                 try {
@@ -38,8 +39,15 @@ export default function IssueVerification() {
                     const { data: ai } = await axios.post(`${base}/api/ai/suggest`, payload);
                     setAiResult(ai);
                     // If a department is suggested, preselect it (non-destructive)
-                    if (ai && ai.department && !selectedDept) {
-                        setSelectedDept(ai.department);
+                    if (ai && ai.department) {
+                        setSelectedDepts((prev) => {
+                            if (prev.length) return prev;
+                            const extras = Array.isArray(ai.extra_departments) ? ai.extra_departments : [];
+                            const combined = [ai.department, ...extras]
+                                .map((d) => (typeof d === 'string' ? d.trim() : ''))
+                                .filter(Boolean);
+                            return combined.length ? Array.from(new Set(combined)) : prev;
+                        });
                     }
                 } catch (ae) {
                     console.warn('AI suggestion failed', ae);
@@ -61,7 +69,7 @@ export default function IssueVerification() {
             const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
             const { data } = await axios.post(`${base}/api/issues/${id}/verify`, {
                 action,
-                department: selectedDept || null,
+                department: selectedDepts,
             });
             navigate('/govt-problem-page');
         } catch (e) {
@@ -109,12 +117,25 @@ export default function IssueVerification() {
                             <div><b>Validation:</b> {aiResult.valid ? 'Validated' : 'Not validated'}</div>
                         )}
                         <div style={{ marginTop: 6 }}>
-                            <b>Suggested Department:</b> {aiResult.department ? (
+                            <b>Suggested Departments:</b>{' '}
+                            {aiResult.department ? (
                                 <>
-                                    <span style={{ textTransform: 'capitalize' }}>{aiResult.department}</span>
-                                    <button className={styles.btn} style={{ marginLeft: 8 }} onClick={() => setSelectedDept(aiResult.department)}>
-                                        Use "{aiResult.department}"
-                                    </button>
+                                    {[aiResult.department, ...(aiResult.extra_departments || [])]
+                                        .filter(Boolean)
+                                        .map((dept) => (
+                                            <button
+                                                key={dept}
+                                                className={styles.btn}
+                                                style={{ marginLeft: 8, textTransform: 'capitalize' }}
+                                                onClick={() => setSelectedDepts((prev) => {
+                                                    const set = new Set(prev);
+                                                    set.add(dept);
+                                                    return Array.from(set);
+                                                })}
+                                            >
+                                                Add {dept}
+                                            </button>
+                                        ))}
                                 </>
                             ) : 'None'}
                         </div>
@@ -134,7 +155,22 @@ export default function IssueVerification() {
                     <div className={styles.list}>
                         {departments.map(d => (
                             <label key={d} className={styles.radioRow}>
-                                <input type="radio" name="dept" value={d} checked={selectedDept === d} onChange={(e) => setSelectedDept(e.target.value)} />
+                                <input
+                                    type="checkbox"
+                                    name="dept"
+                                    value={d}
+                                    checked={selectedDepts.includes(d)}
+                                    onChange={(e) => {
+                                        const { checked, value } = e.target;
+                                        setSelectedDepts((prev) => {
+                                            if (checked) {
+                                                if (prev.includes(value)) return prev;
+                                                return [...prev, value];
+                                            }
+                                            return prev.filter((item) => item !== value);
+                                        });
+                                    }}
+                                />
                                 <span style={{ textTransform: 'capitalize' }}>{d}</span>
                             </label>
                         ))}
@@ -147,6 +183,9 @@ export default function IssueVerification() {
                         <div className={styles.metaRow}><span><b>Phone:</b> {issue.phone_number || 'N/A'}</span> <span><b>Status:</b> {issue.status}</span></div>
                         <div className={styles.metaRow}><span><b>Lat:</b> {issue.latitude ?? 'N/A'}</span> <span><b>Lon:</b> {issue.longitude ?? 'N/A'}</span></div>
                         <div style={{ marginTop: 8 }}><b>Description:</b><br />{issue.description || 'No description'}</div>
+                        {Array.isArray(issue.assigned_departments) && issue.assigned_departments.length > 0 && (
+                            <div style={{ marginTop: 8 }}><b>Current Departments:</b> {issue.assigned_departments.map((dept) => dept.charAt(0).toUpperCase() + dept.slice(1)).join(', ')}</div>
+                        )}
                         {issue.photo && <img className={styles.image} src={issue.photo} alt="evidence" />}
                     </div>
                 </div>

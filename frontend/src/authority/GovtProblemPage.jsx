@@ -113,10 +113,22 @@ const GovtProblemPage = () => {
                     <div style={{ maxWidth: 300 }}>
                       <h4>Issue #{issue.id}</h4>
                       <p>{issue.description || 'No description available'}</p>
+                      {issue.description_pic_ai && (
+                        <p><b>AI Photo Summary:</b> {issue.description_pic_ai}</p>
+                      )}
+                      {typeof issue.validation === 'boolean' && (
+                        <p><b>Validation:</b> {issue.validation ? 'Matches description' : 'Needs manual review'}</p>
+                      )}
+                      {issue.reason_text && (
+                        <p><b>AI Reason:</b> {issue.reason_text}</p>
+                      )}
                       {issue.photo && (
                         <img src={issue.photo} alt="evidence" style={{ width: '100%', borderRadius: 6 }} />
                       )}
                       <p><b>Status:</b> {issue.status || 'Pending'}</p>
+                      {Array.isArray(issue.assigned_departments) && issue.assigned_departments.length > 0 && (
+                        <p><b>Assigned Departments:</b> {issue.assigned_departments.map((dept) => dept.charAt(0).toUpperCase() + dept.slice(1)).join(', ')}</p>
+                      )}
                     </div>
                   </Popup>
                 </Marker>
@@ -136,6 +148,14 @@ const GovtProblemPage = () => {
                   <div className={styles.text}>
                     <p><b>ID:</b> {issue.id}</p>
                     <p><b>Description:</b> {issue.description}</p>
+                    {issue.description_pic_ai && <p><b>AI Photo Summary:</b> {issue.description_pic_ai}</p>}
+                    {typeof issue.validation === 'boolean' && (
+                      <p><b>Validation:</b> {issue.validation ? 'Matches description' : 'Needs manual review'}</p>
+                    )}
+                    {issue.reason_text && <p><b>AI Reason:</b> {issue.reason_text}</p>}
+                    {Array.isArray(issue.assigned_departments) && issue.assigned_departments.length > 0 && (
+                      <p><b>Assigned Departments:</b> {issue.assigned_departments.map((dept) => dept.charAt(0).toUpperCase() + dept.slice(1)).join(', ')}</p>
+                    )}
                     <p><b>Status:</b> <span className={`${styles.statusPill} ${styles[`status-${issue.status?.toLowerCase() || 'pending'}`]}`}>{issue.status || 'Pending'}</span></p>
                   </div>
                   <button

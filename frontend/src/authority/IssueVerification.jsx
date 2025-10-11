@@ -14,8 +14,6 @@ export default function IssueVerification() {
     const [selectedDepts, setSelectedDepts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [aiResult, setAiResult] = useState(null);
-    const [aiLoading, setAiLoading] = useState(false);
 
     useEffect(() => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -28,33 +26,6 @@ export default function IssueVerification() {
                 setIssue(issueData);
                 setSelectedDepts(Array.isArray(issueData.assigned_departments) ? issueData.assigned_departments : []);
                 setDepartments(meta.departments || []);
-                // trigger AI suggestion after we have the issue (once)
-                try {
-                    setAiLoading(true);
-                    const payload = {
-                        description: issueData.description || '',
-                        photo: issueData.photo || '',
-                        departments: meta.departments || [],
-                    };
-                    const { data: ai } = await axios.post(`${base}/api/ai/suggest`, payload);
-                    setAiResult(ai);
-                    // If a department is suggested, preselect it (non-destructive)
-                    if (ai && ai.department) {
-                        setSelectedDepts((prev) => {
-                            if (prev.length) return prev;
-                            const extras = Array.isArray(ai.extra_departments) ? ai.extra_departments : [];
-                            const combined = [ai.department, ...extras]
-                                .map((d) => (typeof d === 'string' ? d.trim() : ''))
-                                .filter(Boolean);
-                            return combined.length ? Array.from(new Set(combined)) : prev;
-                        });
-                    }
-                } catch (ae) {
-                    console.warn('AI suggestion failed', ae);
-                    setAiResult({ error: ae.response?.data?.message || ae.message });
-                } finally {
-                    setAiLoading(false);
-                }
             } catch (e) {
                 setError(e.response?.data?.message || 'Failed to load issue');
             } finally {
@@ -102,50 +73,16 @@ export default function IssueVerification() {
 
             {/* AI suggestion box */}
             <div className={styles.aiBox}>
-                {aiLoading && <div>Analyzing with AI...</div>}
-                {!aiLoading && aiResult && aiResult.error && (
-                    <div style={{ color: 'red' }}>AI error: {aiResult.error}</div>
+                <div><b>Photo:</b> {issue.photo ? 'Present' : 'Not provided'}</div>
+                <div><b>Validation:</b> {issue.photo ? (issue.validation ? 'Matches description' : 'Needs manual review') : 'Cannot validate (no photo)'}</div>
+                {issue.description_pic_ai && (
+                    <div style={{ marginTop: 6 }}><b>Photo Summary:</b> {issue.description_pic_ai}</div>
                 )}
-                {/* Render ai-suggest result */}
-                {!aiLoading && aiResult && !aiResult.error && (
-                    <div>
-                        <div><b>Photo:</b> {issue.photo ? 'Present' : 'Not provided'}</div>
-                        {!issue.photo && (
-                            <div><b>Validation:</b> Cannot validate (no photo)</div>
-                        )}
-                        {issue.photo && (
-                            <div><b>Validation:</b> {aiResult.valid ? 'Validated' : 'Not validated'}</div>
-                        )}
-                        <div style={{ marginTop: 6 }}>
-                            <b>Suggested Departments:</b>{' '}
-                            {aiResult.department ? (
-                                <>
-                                    {[aiResult.department, ...(aiResult.extra_departments || [])]
-                                        .filter(Boolean)
-                                        .map((dept) => (
-                                            <button
-                                                key={dept}
-                                                className={styles.btn}
-                                                style={{ marginLeft: 8, textTransform: 'capitalize' }}
-                                                onClick={() => setSelectedDepts((prev) => {
-                                                    const set = new Set(prev);
-                                                    set.add(dept);
-                                                    return Array.from(set);
-                                                })}
-                                            >
-                                                Add {dept}
-                                            </button>
-                                        ))}
-                                </>
-                            ) : 'None'}
-                        </div>
-                        {aiResult.reason && (
-                            <div style={{ marginTop: 6 }}><b>Reason:</b> {aiResult.reason}</div>
-                        )}
-                    </div>
+                {issue.reason_text && (
+                    <div style={{ marginTop: 6 }}><b>Reason:</b> {issue.reason_text}</div>
                 )}
-                {!aiLoading && !aiResult && (
-                    <div>AI suggestion not available</div>
+                {Array.isArray(issue.assigned_departments) && issue.assigned_departments.length > 0 && (
+                    <div style={{ marginTop: 6 }}><b>Suggested Departments:</b> {issue.assigned_departments.map((dept) => dept.charAt(0).toUpperCase() + dept.slice(1)).join(', ')}</div>
                 )}
             </div>
 

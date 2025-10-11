@@ -105,6 +105,10 @@ async function setupDatabase() {
         emergency BOOLEAN DEFAULT FALSE,
         status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending',
         assigned_department VARCHAR(100) NULL
+        description_pic_AI VARCHAR(255) NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        validation boolean DEFAULT FALSE,
+        REASON_TEXT VARCHAR(255) NULL
       )
     `);
 

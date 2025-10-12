@@ -1,124 +1,181 @@
 .citizen-nav {
-    position: fixed;
-    top: 0;
+    display: flex;
+    position: sticky;
+    align-items: center;
+    justify-content: space-between;
     left: 0;
     right: 0;
-    background: linear-gradient(90deg, #062d3d, #0b3f50, #08495c); /* ocean gradient */
+    background: linear-gradient(90deg, #072a4a90, #11105a5a, #1b0752);
+    /* ocean gradient */
     color: #4dd0e1;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 1000;
-    border-bottom: 2px solid #4dd0e1;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-}
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6);
+    padding: .8rem 4rem;
 
-.nav-logo {
-    color: #4dd0e1;
-    font-size: 1.6rem;
-    font-weight: 700;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    letter-spacing: 0.5px;
-}
 
-.nav-links {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-    color: #4dd0e1;
-}
 
-.nav-link {
-    color: #4dd0e1;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 1.05rem;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    letter-spacing: 0.3px;
-    background: transparent;
-    border: 1px solid #4dd0e1;
-}
-
-.nav-link:hover {
-    color: #4dd0e1;
-    background: rgba(77, 208, 225, 0.1);
-    border-color: #4dd0e1;
-}
-
-.nav-link.active {
-    color: #4dd0e1;
-    background: rgba(77, 208, 225, 0.15);
-    border-color: #4dd0e1;
-    font-weight: 600;
-}
-
-.profile-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.user-info {
-    color: #4dd0e1;
-    font-size: 1rem;
-    font-weight: 500;
-    padding: 0.3rem 0.8rem;
-    border-radius: 6px;
-    background: transparent;
-    border: 1px solid #4dd0e1;
-}
-
-.logout-btn {
-    padding: 0.5rem 1rem;
-    background: transparent;
-    border: 1px solid #ff6347;
-    color: #ff6347;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.logout-btn:hover {
-    background: rgba(255, 99, 71, 0.1);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .citizen-nav {
-        padding: 1rem;
-    }
-
-    .nav-links {
-        gap: 1rem;
-    }
-
-    .nav-link {
-        padding: 0.4rem 0.8rem;
-        font-size: 1rem;
+    .citizen-nav::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12), transparent 60%);
+        pointer-events: none;
+        z-index: -1;
     }
 
     .nav-logo {
+        color: #38bdf8;
         font-size: 1.4rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        letter-spacing: 0.06em;
+    }
+
+    .nav-logo svg {
+        font-size: 1.3rem;
+    }
+
+    .nav-tagline {
+        color: rgba(203, 213, 225, 0.82);
+        font-size: 0.85rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: .25rem;
+        border-radius: 999px;
+        background: rgba(13, 28, 48, 0.164);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        justify-self: center;
+    }
+
+    .nav-link {
+        color: rgba(226, 232, 240, 0.95);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.98rem;
+        padding: 0.5rem 1.05rem;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        letter-spacing: 0.02em;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(23, 42, 73, 0.498);
+        transition: transform 0.2s ease, background 0.2s ease, border 0.2s ease;
+    }
+
+    .nav-link svg {
+        font-size: 0.95rem;
+    }
+
+    .nav-link:hover {
+        transform: translateY(-1px);
+        background: rgba(46, 78, 122, 0.72);
+        border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .nav-link.active {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(99, 102, 241, 0.3));
+        border-color: rgba(56, 189, 248, 0.55);
+        color: #f0f9ff;
+        box-shadow: 0 12px 26px rgba(56, 189, 248, 0.32);
+    }
+
+    .profile-section {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 999px;
+        background: rgba(13, 28, 48, 0.199);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        justify-self: end;
     }
 
     .user-info {
-        font-size: 0.95rem;
+        color: rgba(226, 232, 240, 0.95);
+        font-size: 0.93rem;
+        font-weight: 500;
+        padding: 0.45rem 0.95rem;
+        border-radius: 999px;
+        background: rgba(23, 42, 73, 0.68);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        white-space: nowrap;
+    }
+
+    .logout-btn {
+        padding: 0.45rem 0.95rem;
+        border-radius: 999px;
+        border: 1px solid rgba(248, 113, 113, 0.55);
+        background: rgba(248, 113, 113, 0.14);
+        color: rgba(248, 113, 113, 0.92);
+        cursor: pointer;
+        font-size: 0.93rem;
+        font-weight: 500;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+        white-space: nowrap;
+    }
+
+    .logout-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(248, 113, 113, 0.22);
+        box-shadow: 0 10px 22px rgba(248, 113, 113, 0.28);
+    }
+
+    @media (max-width: 1180px) {
+        .citizen-nav {
+            grid-template-columns: minmax(0, 1fr);
+            justify-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1.2rem;
+        }
+
+        .profile-section {
+            justify-self: end;
+        }
+    }
+
+    @media (max-width: 980px) {
+        .citizen-nav {
+            gap: 0.85rem;
+        }
+
+        .nav-links {
+            gap: 0.65rem;
+        }
+
+        .nav-link {
+            padding: .1rem .75rem;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .citizen-nav {
+            padding: 1rem 1.1rem;
+        }
+
+        .profile-section {
+            justify-self: stretch;
+            justify-content: space-between;
+        }
+    }
+
+    .citizen-content {
+        margin-top: 140px;
+        min-height: calc(100vh - 140px);
     }
 }
 
 .citizen-content {
-    margin-top: 80px;
     min-height: calc(100vh - 80px);
 }

@@ -244,6 +244,8 @@ const IssueSubmissionWithMap = () => {
     addIssueToServer();
   };
 
+  const coordinateDisplay = location ? `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}` : 'Not selected';
+
   return (
     <>
       <CitizenNav />

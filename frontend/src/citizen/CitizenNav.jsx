@@ -8,18 +8,23 @@ const CitizenNav = () => {
     const location = useLocation();
     const { user, logout } = useAuth();
 
-    const isActive = (path) => {
-        return location.pathname === path ? 'active' : '';
-    };
+    const isActive = (path) => (location.pathname === path ? 'active' : '');
+
+    const userDisplayName = [user?.firstName, user?.lastName]
+        .filter(Boolean)
+        .join(' ') || user?.name || 'Citizen';
 
     return (
         <nav className="citizen-nav">
-            <Link to="/citizen" className="nav-logo">
-                <FaHome /> TheLumiNos
-            </Link>
-            
+            <div className="nav-left">
+                <Link to="/citizen" className="nav-logo">
+                    <FaHome /> TheLumiNos
+                </Link>
+                <span className="nav-tagline">Citizen Portal</span>
+            </div>
+
             <div className="nav-links">
-                <Link to="/issue-submission" className={`nav-link ${isActive('/submit-issue')}`}>
+                <Link to="/issue-submission" className={`nav-link ${isActive('/issue-submission')}`}>
                     <FaFileAlt /> Submit Issue
                 </Link>
                 <Link to="/trackprogress" className={`nav-link ${isActive('/trackprogress')}`}>
@@ -31,8 +36,8 @@ const CitizenNav = () => {
             </div>
 
             <div className="profile-section">
-                <div className="user-info">
-                    {user?.name || 'User'}
+                <div className="user-info" title={userDisplayName}>
+                    {userDisplayName}
                 </div>
                 <button onClick={logout} className="logout-btn">
                     Logout

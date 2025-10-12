@@ -16,6 +16,12 @@
     margin-bottom: 16px;
 }
 
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .title {
     font-size: 1.6rem;
     font-weight: 800;
@@ -54,6 +60,11 @@
 .btnDeny {
     background: #ffebee;
     color: #b71c1c;
+}
+
+.btnBack {
+    background: #e3f2fd;
+    color: #0d47a1;
 }
 
 .aiBox {

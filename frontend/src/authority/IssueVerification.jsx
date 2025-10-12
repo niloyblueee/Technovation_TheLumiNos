@@ -89,7 +89,16 @@ export default function IssueVerification() {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <div className={styles.title}>Pending Verification</div>
+                <div className={styles.headerLeft}>
+                    <button
+                        type="button"
+                        className={`${styles.btn} ${styles.btnBack}`}
+                        onClick={() => navigate(-1)}
+                    >
+                        Back
+                    </button>
+                    <div className={styles.title}>Pending Verification</div>
+                </div>
                 <div className={styles.actions}>
                     <button className={`${styles.btn} ${styles.btnApprove}`} onClick={() => verify('approve', [issue.id])}>Approve</button>
                     <button className={`${styles.btn} ${styles.btnDeny}`} onClick={() => verify('deny', [issue.id])}>Deny</button>

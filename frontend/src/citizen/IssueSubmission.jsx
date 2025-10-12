@@ -248,138 +248,168 @@ const IssueSubmissionWithMap = () => {
     <>
       <CitizenNav />
       <div className="app-container citizen-content">
-        <div className="form-card">
-          <h1 className="form-title" style={{ margin: 0 }}>Issue Submission</h1>
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-section">
-              <label className="form-label">Problem Type</label>
-              <div className="button-group">
-                <button
-                  type="button"
-                  onClick={() => setIsEmergency(true)}
-                  className={`button-emergency ${isEmergency ? 'active' : ''}`}
-                >
-                  Emergency
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEmergency(false)}
-                  className={`button-normal ${!isEmergency ? 'active' : ''}`}
-                >
-                  Normal Problems
-                </button>
-              </div>
+        <div className="issue-layout">
+          <header className="issue-header">
+            <div className="issue-heading">
+              <h1 className="form-title">Report An Issue</h1>
+              <p className="form-subtitle">Submit community problems with precise details so authorities can act quickly.</p>
             </div>
+          </header>
 
-            <div className="form-section">
-              <label className="form-label">Location Coordinate</label>
-              <input
-                type="text"
-                value={location ? `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 'Click to fetch location...'}
-                onChange={handleLocationChange}
-                onClick={() => { setShowMap(true); getLiveLocation(); }}
-                className="input-field"
-                readOnly={false}
-              />
-              <div style={{ marginTop: 8 }}>
-                <button type="button" className="file-upload-button" onClick={() => { getLiveLocation(); setShowMap(true); }}>
-                  Use current location / open map
-                </button>
-                <small style={{ marginLeft: 8, color: '#666' }}>
-                  {geoError ? `Error: ${geoError}` : 'You can drag the marker on the map to fine-tune.'}
-                </small>
-              </div>
-            </div>
-
-            {showMap && location && (
-              <div className="form-section" style={{ height: 360 }}>
-                <MapContainer
-                  center={[mapCenter.lat, mapCenter.lng]}
-                  zoom={15}
-                  style={{ height: '100%', width: '100%' }}
-                  whenCreated={(map) => {
-                    map.setMaxBounds(REGION_BOUNDS);
-                  }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-
-                  <DraggableMarker
-                    position={location}
-                    setPosition={(pos) => {
-                      setLocation(pos);
-                    }}
-                    bounds={REGION_BOUNDS}
-                  />
-                </MapContainer>
-
-                <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                  <button type="button" className="file-upload-button" onClick={() => { setShowMap(false); }}>
-                    Confirm location
+          <div className="issue-body">
+            <form onSubmit={handleSubmit} className="form-card">
+              <section className="form-section">
+                <div className="section-heading">
+                  <label className="form-label">Problem Type</label>
+                  <span className="section-hint">Choose the urgency level</span>
+                </div>
+                <div className="button-group">
+                  <button
+                    type="button"
+                    onClick={() => setIsEmergency(true)}
+                    className={`toggle-pill ${isEmergency ? 'selected' : ''}`}
+                  >
+                    Emergency
                   </button>
-                  <button type="button" className="file-upload-button" onClick={() => { setShowMap(false); setLocation(null); }}>
-                    Cancel
+                  <button
+                    type="button"
+                    onClick={() => setIsEmergency(false)}
+                    className={`toggle-pill ${!isEmergency ? 'selected' : ''}`}
+                  >
+                    Normal
                   </button>
                 </div>
-              </div>
-            )}
+              </section>
 
-            <div className="form-section">
-              <label htmlFor="description" className="form-label">
-                Problem Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="input-field textarea-field"
-                rows="4"
-                placeholder="Describe the problem in detail..."
-                required
-              ></textarea>
-            </div>
-
-            <div className="form-section">
-              <label className="form-label">Photo Evidence</label>
-              <div className="file-upload-group">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                  className="file-upload-button"
-                >
-                  Upload File
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden-file-input"
-                  accept="image/*"
-                />
-                {file && (
-                  <img
-                    src={file}
-                    alt="preview"
-                    style={{ width: 120, height: 'auto', borderRadius: 6, marginLeft: 8 }}
+              <section className="form-section">
+                <div className="section-heading">
+                  <label className="form-label">Location Coordinate</label>
+                  <span className="section-hint">Auto-detected or choose from map</span>
+                </div>
+                <div className="field-with-actions">
+                  <input
+                    type="text"
+                    value={location ? `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 'Click to fetch location...'}
+                    onChange={handleLocationChange}
+                    onClick={() => { setShowMap(true); getLiveLocation(); }}
+                    className="input-field"
+                    readOnly={false}
                   />
-                )}
+                  <button type="button" className="ghost-button" onClick={() => { getLiveLocation(); setShowMap(true); }}>
+                    Use current location
+                  </button>
+                </div>
+                <p className="help-text">{geoError ? `Error: ${geoError}` : 'Fine-tune by dragging the pin on the map.'}</p>
+              </section>
+
+              {showMap && location && (
+                <section className="form-section">
+                  <div className="map-wrapper">
+                    <MapContainer
+                      center={[mapCenter.lat, mapCenter.lng]}
+                      zoom={15}
+                      className="map"
+                      whenCreated={(map) => {
+                        map.setMaxBounds(REGION_BOUNDS);
+                      }}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+
+                      <DraggableMarker
+                        position={location}
+                        setPosition={(pos) => {
+                          setLocation(pos);
+                        }}
+                        bounds={REGION_BOUNDS}
+                      />
+                    </MapContainer>
+                    <div className="map-actions">
+                      <button type="button" className="ghost-button" onClick={() => { setShowMap(false); }}>
+                        Confirm location
+                      </button>
+                      <button type="button" className="ghost-button" onClick={() => { setShowMap(false); setLocation(null); }}>
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              <section className="form-section">
+                <div className="section-heading">
+                  <label htmlFor="description" className="form-label">
+                    Problem Description
+                  </label>
+                  <span className="section-hint">Share key facts and impact</span>
+                </div>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="input-field textarea-field"
+                  rows="4"
+                  placeholder="Include location details, severity, and any context that helps responders."
+                  required
+                ></textarea>
+              </section>
+
+              <section className="form-section">
+                <div className="section-heading">
+                  <label className="form-label">Photo Evidence</label>
+                  <span className="section-hint">Optional, but helps prioritise</span>
+                </div>
+                <div className="file-upload-group">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                    className="ghost-button"
+                  >
+                    Attach photo
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden-file-input"
+                    accept="image/*"
+                  />
+                  {file && (
+                    <img
+                      src={file}
+                      alt="preview"
+                      className="preview-image"
+                    />
+                  )}
+                </div>
+              </section>
+
+              <div className="form-actions">
+                <button type="submit" className="submit-button">
+                  Submit Issue
+                </button>
               </div>
-            </div>
+            </form>
 
-            <button type="submit" className="submit-button">
-              Submit Issue
-            </button>
-          </form>
-
-          {submittedData && (
-            <div className="submitted-data-container">
-              <h2 className="submitted-data-title">Submitted Data:</h2>
-              <pre className="submitted-data-code">{JSON.stringify(submittedData, null, 2)}</pre>
-            </div>
-          )}
+            <aside className="side-panel">
+              <div className="side-card">
+                <h2>Submission Tips</h2>
+                <ul>
+                  <li>Confirm your coordinates before submitting.</li>
+                  <li>Attach clear photos to speed up verification.</li>
+                  <li>Provide contact info if authorities need follow-up.</li>
+                </ul>
+              </div>
+              {submittedData && (
+                <div className="side-card">
+                  <h2>Payload Preview</h2>
+                  <pre className="submitted-data-code">{JSON.stringify(submittedData, null, 2)}</pre>
+                </div>
+              )}
+            </aside>
+          </div>
         </div>
       </div>
     </>

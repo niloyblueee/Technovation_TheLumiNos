@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './TrackProgress.css';
 import { useAuth } from '../contexts/AuthContext';
 import CitizenNav from './CitizenNav';
@@ -46,8 +46,11 @@ function TrackProgress() {
 
             return {
               id: i.id,
-              title: i.description ? (i.description.length > 60 ? i.description.slice(0, 57) + '...' : i.description) : `Issue ${i.id}`,
-              status: statusLabel
+              title: i.description ? (i.description.length > 72 ? i.description.slice(0, 69) + '...' : i.description) : `Issue ${i.id}`,
+              status: statusLabel,
+              coordinate: i.coordinate || i.location || '',
+              submittedAt: i.created_at || i.createdAt || i.created_on || null,
+              updatedAt: i.updated_at || i.updatedAt || i.updated_on || i.modified_at || null,
             };
           });
           setProblems(mapped);
@@ -72,41 +75,128 @@ function TrackProgress() {
     return 'badge-default';
   };
 
+  const summary = useMemo(() => {
+    const counts = { total: problems.length, pending: 0, progress: 0, completed: 0 };
+    problems.forEach((p) => {
+      const s = (p.status || '').toLowerCase();
+      if (s.includes('progress')) counts.progress += 1;
+      else if (s.includes('complete')) counts.completed += 1;
+      else counts.pending += 1;
+    });
+    return counts;
+  }, [problems]);
+
+  const latestUpdate = useMemo(() => {
+    const timestamps = problems
+      .map((p) => p.updatedAt || p.submittedAt)
+      .map((value) => {
+        const date = value ? new Date(value) : null;
+        return date && !Number.isNaN(date.getTime()) ? date.getTime() : null;
+      })
+      .filter((value) => value !== null);
+    if (timestamps.length === 0) return null;
+    return new Date(Math.max(...timestamps));
+  }, [problems]);
+
+  const formatDate = (value) => {
+    if (!value) return 'Awaiting update';
+    const date = typeof value === 'string' || typeof value === 'number' ? new Date(value) : value;
+    if (!date || Number.isNaN(date.getTime())) return 'Awaiting update';
+    return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  };
+
   return (
     <>
       <CitizenNav />
-      <div className="tp-container citizen-content">
-        <div className="tp-card">
-          <h1 className="tp-title">Flagged Problems</h1>
-
-          <div className="tp-list">
-            <div className="tp-header">
-              <div className="tp-header-cell">Problems</div>
-              <div className="tp-header-cell">Status</div>
+      <div className="tp-shell citizen-content">
+        <div className="tp-layout">
+          <header className="tp-hero">
+            <div className="tp-hero-text">
+              <h1>Track Your Reports</h1>
+              <p>Monitor every issue you have raised and follow its journey from submission to resolution.</p>
             </div>
-
-            {loading && (
-              <div className="tp-loading">Loading problems...</div>
-            )}
-
-            {error && (
-              <div className="tp-error">Error: {error}</div>
-            )}
-
-            {problems.map((problem) => (
-              <div key={problem.id} className="tp-row">
-                <div className="tp-problem">{problem.title}</div>
-                <div className="tp-status">
-                  <span className={`tp-status-badge ${getStatusClass(problem.status)}`}>
-                    {problem.status}
-                  </span>
-                </div>
+            <div className="tp-stats" aria-label="Issue summary">
+              <div className="tp-stat-card">
+                <span className="tp-stat-label">Total</span>
+                <span className="tp-stat-value">{summary.total}</span>
               </div>
-            ))}
+              <div className="tp-stat-card">
+                <span className="tp-stat-label">Pending</span>
+                <span className="tp-stat-value">{summary.pending}</span>
+              </div>
+              <div className="tp-stat-card">
+                <span className="tp-stat-label">In Progress</span>
+                <span className="tp-stat-value">{summary.progress}</span>
+              </div>
+              <div className="tp-stat-card">
+                <span className="tp-stat-label">Completed</span>
+                <span className="tp-stat-value">{summary.completed}</span>
+              </div>
+            </div>
+          </header>
 
-            {problems.length === 0 && (
-              <div className="tp-empty">No flagged problems at this time.</div>
-            )}
+          <div className="tp-content">
+            <section className="tp-stream">
+              <div className="tp-table-head">
+                <span>Issue Details</span>
+                <span>Status</span>
+                <span>Last Update</span>
+              </div>
+
+              <div className="tp-table-body">
+                {loading && (
+                  <div className="tp-state tp-loading">Loading issues…</div>
+                )}
+
+                {error && (
+                  <div className="tp-state tp-error">Unable to load updates: {error}</div>
+                )}
+
+                {!loading && !error && problems.map((problem) => (
+                  <article key={problem.id} className="tp-row">
+                    <div className="tp-issue">
+                      <h2 className="tp-issue-title">{problem.title}</h2>
+                      <div className="tp-issue-meta">
+                        {problem.coordinate ? (
+                          <span className="tp-meta-chip">{problem.coordinate}</span>
+                        ) : null}
+                        {problem.submittedAt ? (
+                          <span className="tp-meta-chip">Submitted {formatDate(problem.submittedAt)}</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="tp-status">
+                      <span className={`tp-status-badge ${getStatusClass(problem.status)}`}>
+                        {problem.status}
+                      </span>
+                    </div>
+                    <div className="tp-updated">{formatDate(problem.updatedAt || problem.submittedAt)}</div>
+                  </article>
+                ))}
+
+                {!loading && !error && problems.length === 0 && (
+                  <div className="tp-state tp-empty">
+                    You haven’t submitted any issues yet. Once you do, you’ll see progress updates here.
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <aside className="tp-side">
+              <div className="tp-aside-card">
+                <h3>How progress is tracked</h3>
+                <ul>
+                  <li>Pending reports are awaiting verification by the authority team.</li>
+                  <li>In progress means on-ground teams are actively addressing the issue.</li>
+                  <li>Completed issues were resolved and closed by the authority.</li>
+                </ul>
+              </div>
+              <div className="tp-aside-card">
+                <h3>Last sync</h3>
+                <p className="tp-sync-time">{latestUpdate ? formatDate(latestUpdate) : 'No updates yet'}</p>
+                <p className="tp-sync-note">Refresh the page to pull the newest status from the server.</p>
+              </div>
+            </aside>
           </div>
         </div>
       </div>

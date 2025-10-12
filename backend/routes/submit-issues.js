@@ -111,8 +111,13 @@ const analyzeIssueWithAI = async ({ description, photo, modelOverride = null }) 
         const sanitized = departmentsRaw
             .map((val) => (typeof val === "string" ? val.trim().toLowerCase() : ""))
             .filter((val) => DEPARTMENTS.includes(val));
-        const heuristicFallback = keywordDepartmentsHeuristic(`${description || ""} ${photoDescription}`);
-        const assignedDepartments = (sanitized.length ? sanitized : heuristicFallback).slice(0, 3);
+        let assignedDepartments = sanitized.slice(0, 3);
+        if (!(match && hasPhoto)) {
+            assignedDepartments = [];
+        }
+        if (assignedDepartments.length === 0 && match && hasPhoto) {
+            assignedDepartments = keywordDepartmentsHeuristic(`${description || ""} ${photoDescription}`).slice(0, 3);
+        }
 
         return {
             descriptionPicAI: photoDescription,

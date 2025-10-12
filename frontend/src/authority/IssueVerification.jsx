@@ -74,7 +74,18 @@ export default function IssueVerification() {
             {/* AI suggestion box */}
             <div className={styles.aiBox}>
                 <div><b>Photo:</b> {issue.photo ? 'Present' : 'Not provided'}</div>
-                <div><b>Validation:</b> {issue.photo ? (issue.validation ? 'Matches description' : 'Needs manual review') : 'Cannot validate (no photo)'}</div>
+                <div>
+                    <b>Validation:</b>{' '}
+                    {issue.photo ? (
+                        issue.validation ? (
+                            <span style={{ color: '#1e7c24', fontWeight: 600 }}>Validated</span>
+                        ) : (
+                            <span style={{ color: '#c62828', fontWeight: 600 }}>Not validated</span>
+                        )
+                    ) : (
+                        'Cannot validate (no photo)'
+                    )}
+                </div>
                 {issue.description_pic_ai && (
                     <div style={{ marginTop: 6 }}><b>Photo Summary:</b> {issue.description_pic_ai}</div>
                 )}

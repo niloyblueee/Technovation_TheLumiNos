@@ -117,7 +117,14 @@ const GovtProblemPage = () => {
                         <p><b>AI Photo Summary:</b> {issue.description_pic_ai}</p>
                       )}
                       {typeof issue.validation === 'boolean' && (
-                        <p><b>Validation:</b> {issue.validation ? 'Matches description' : 'Needs manual review'}</p>
+                        <p>
+                          <b>Validation:</b>{' '}
+                          {issue.validation ? (
+                            <span style={{ color: '#1e7c24', fontWeight: 600 }}>Validated</span>
+                          ) : (
+                            <span style={{ color: '#c62828', fontWeight: 600 }}>Not validated</span>
+                          )}
+                        </p>
                       )}
                       {issue.reason_text && (
                         <p><b>AI Reason:</b> {issue.reason_text}</p>
@@ -150,7 +157,14 @@ const GovtProblemPage = () => {
                     <p><b>Description:</b> {issue.description}</p>
                     {issue.description_pic_ai && <p><b>AI Photo Summary:</b> {issue.description_pic_ai}</p>}
                     {typeof issue.validation === 'boolean' && (
-                      <p><b>Validation:</b> {issue.validation ? 'Matches description' : 'Needs manual review'}</p>
+                      <p>
+                        <b>Validation:</b>{' '}
+                        {issue.validation ? (
+                          <span style={{ color: '#1e7c24', fontWeight: 600 }}>Validated</span>
+                        ) : (
+                          <span style={{ color: '#c62828', fontWeight: 600 }}>Not validated</span>
+                        )}
+                      </p>
                     )}
                     {issue.reason_text && <p><b>AI Reason:</b> {issue.reason_text}</p>}
                     {Array.isArray(issue.assigned_departments) && issue.assigned_departments.length > 0 && (

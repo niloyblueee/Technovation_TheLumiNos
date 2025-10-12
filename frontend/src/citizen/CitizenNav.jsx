@@ -45,9 +45,14 @@ const CitizenNav = () => {
             </div>
 
             <div className="profile-section">
-                <div className="user-info" title={userDisplayName}>
+                <button
+                    type="button"
+                    className="user-info"
+                    title={userDisplayName}
+                    onClick={() => navigate('/citizen')}
+                >
                     {userDisplayName}
-                </div>
+                </button>
                 <button onClick={logout} className="logout-btn">
                     Logout
                 </button>

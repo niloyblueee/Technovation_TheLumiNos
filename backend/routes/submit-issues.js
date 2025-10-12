@@ -7,6 +7,15 @@ const DEPARTMENTS = ["police", "health", "fire", "water", "electricity"];
 const MATCH_RADIUS_METERS = 100;
 const MATCH_WINDOW_MINUTES = 30;
 
+const INCIDENT_CATEGORIES = {
+    pothole: ["pothole", "road hole", "road damage", "pit", "sinkhole", "crater", "broken road"],
+    flood: ["flood", "waterlogging", "water log", "inundation", "overflow", "standing water", "drain clog"],
+    fire: ["fire", "flame", "smoke", "burn", "blaze", "combustion", "spark"],
+    accident: ["accident", "collision", "crash", "hit", "vehicle strike", "road mishap", "pileup"],
+    electrical: ["electric", "power", "short circuit", "wire", "transformer", "electricity", "shock"],
+    crime: ["crime", "theft", "robbery", "assault", "violence", "police", "security"],
+};
+
 const parseCoordinate = (coordinate) => {
     if (!coordinate) return null;
     const parts = String(coordinate).split(",").map((s) => s.trim());
@@ -94,6 +103,18 @@ const keywordDepartmentsHeuristic = (text = "") => {
     if (/water|flood|leak|sewer|drain|drainage|pipeline/.test(lc)) add("water");
     if (/electric|power|wire|transformer|outage|electrocute|short circuit/.test(lc)) add("electricity");
     return matches;
+};
+
+const deriveIncidentTags = (text = "") => {
+    const tags = new Set();
+    if (!text) return tags;
+    const normalized = text.toLowerCase();
+    Object.entries(INCIDENT_CATEGORIES).forEach(([tag, keywords]) => {
+        if (keywords.some((kw) => normalized.includes(kw))) {
+            tags.add(tag);
+        }
+    });
+    return tags;
 };
 
 const buildAiResponseFallback = (description, photo) => {
@@ -290,6 +311,7 @@ const assignIssueToCollection = async (db, issueId, aiResult) => {
 
     const normalizedReason = normalizeReason(freshIssue.reason_text);
     const normalizedSummary = normalizeReason(freshIssue.description_pic_ai);
+    const incidentTags = deriveIncidentTags(`${freshIssue.reason_text || ""} ${freshIssue.description_pic_ai || ""}`);
     const currentAssigned = parseAssignedDepartments(freshIssue.assigned_department);
     if (!normalizedReason && !normalizedSummary && currentAssigned.length === 0) {
         return;
@@ -332,6 +354,13 @@ const assignIssueToCollection = async (db, issueId, aiResult) => {
         const candidateSummary = normalizeReason(candidate.description_pic_ai);
         const reasonMatches = normalizedReason && candidateReason && reasonsMatch(normalizedReason, candidateReason);
         const summaryMatches = normalizedSummary && candidateSummary && reasonsMatch(normalizedSummary, candidateSummary);
+        const candidateTags = deriveIncidentTags(`${candidate.reason_text || ""} ${candidate.description_pic_ai || ""}`);
+        const incidentOverlap = incidentTags.size && candidateTags.size
+            ? [...incidentTags].some((tag) => candidateTags.has(tag))
+            : false;
+        if (incidentTags.size && candidateTags.size && !incidentOverlap) {
+            continue;
+        }
         const candidateAssigned = parseAssignedDepartments(candidate.assigned_department);
         const assignedOverlap = currentAssigned.length && candidateAssigned.length
             ? currentAssigned.some((dept) => candidateAssigned.includes(dept))
@@ -344,7 +373,7 @@ const assignIssueToCollection = async (db, issueId, aiResult) => {
             continue;
         }
 
-        let allowGrouping = assignedOverlap;
+        let allowGrouping = assignedOverlap || incidentOverlap;
         if (!allowGrouping && textualMatch) {
             const aiDecision = await confirmCollectionWithAI({
                 baseReason: freshIssue.reason_text,

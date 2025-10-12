@@ -5,7 +5,7 @@
     justify-content: space-between;
     left: 0;
     right: 0;
-    background: linear-gradient(90deg, #072a4a90, #11105a5a, #1b0752);
+    background: linear-gradient(90deg, #072a4a90, #11105a5a, #120538fd);
     /* ocean gradient */
     color: #4dd0e1;
     box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6);
@@ -178,4 +178,34 @@
 
 .citizen-content {
     min-height: calc(100vh - 80px);
+}
+
+.nav-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.nav-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(13, 28, 48, 0.4);
+    color: rgba(226, 232, 240, 0.92);
+    cursor: pointer;
+    transition: transform 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-back:hover {
+    transform: translateX(-2px);
+    border-color: rgba(56, 189, 248, 0.55);
+    box-shadow: 0 8px 18px rgba(56, 189, 248, 0.22);
+}
+
+.nav-back svg {
+    font-size: 0.95rem;
 }

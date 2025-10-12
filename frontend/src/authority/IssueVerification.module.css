@@ -111,3 +111,51 @@
     border: 1px solid #ddd;
     margin-top: 10px;
 }
+
+.relatedSection {
+    margin-top: 20px;
+    border: 2px solid #000;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 6px 6px 0 #000;
+    padding: 16px;
+}
+
+.relatedHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.relatedActions {
+    display: flex;
+    gap: 12px;
+}
+
+.relatedList {
+    display: grid;
+    gap: 12px;
+}
+
+.relatedCard {
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 12px;
+    background: #fdfdfd;
+    box-shadow: 4px 4px 0 #000;
+}
+
+.relatedCardHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.relatedCardActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}

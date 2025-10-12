@@ -18,6 +18,61 @@ const authenticateToken = (req, res, next) => {
 // Prefer Node's global fetch (Node >=18). If unavailable, lazy-load node-fetch.
 const fetch = global.fetch || ((...args) => import('node-fetch').then(({ default: f }) => f(...args)));
 
+const parseCoordinate = (coordinate) => {
+  if (!coordinate) return null;
+  const parts = String(coordinate).split(',').map((s) => s.trim());
+  if (parts.length < 2) return null;
+  const lat = parseFloat(parts[0]);
+  const lon = parseFloat(parts[1]);
+  if (Number.isNaN(lat) || Number.isNaN(lon)) return null;
+  return { latitude: lat, longitude: lon };
+};
+
+const parseAssignedDepartments = (raw) => {
+  if (!raw) return null;
+  if (Array.isArray(raw)) return raw.map(String);
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.map(String);
+    if (typeof parsed === 'string' && parsed.trim()) return [parsed.trim()];
+  } catch (_) {
+    // fall through to comma split
+  }
+  const tokens = String(raw)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return tokens.length ? tokens : null;
+};
+
+const toIssueDto = (row) => {
+  const coords = parseCoordinate(row.coordinate);
+  const assignedDepartments = parseAssignedDepartments(row.assigned_department);
+  const validation = row.validation === 1 || row.validation === true || row.validation === '1';
+  let collectionHeadId = row.same_collection ? Number(row.same_collection) : row.id;
+  if (Number.isNaN(collectionHeadId) || collectionHeadId <= 0) {
+    collectionHeadId = row.id;
+  }
+  return {
+    id: row.id,
+    phone_number: row.phone_number,
+    description: row.description,
+    photo: row.photo,
+    emergency: !!row.emergency,
+    status: row.status,
+    assigned_departments: assignedDepartments,
+    assigned_department: assignedDepartments ? assignedDepartments.join(', ') : null,
+    description_pic_ai: row.description_pic_ai || null,
+    validation,
+    reason_text: row.reason_text || null,
+    latitude: coords ? coords.latitude : null,
+    longitude: coords ? coords.longitude : null,
+    same_collection: row.same_collection ? String(row.same_collection) : null,
+    created_at: row.createdAt || row.created_at || null,
+    collection_head_id: collectionHeadId,
+  };
+};
+
 async function callOpenAI(prompt) {
   const key = process.env.OPENAI_API_KEY;
   // Default to GPT-5 mini unless overridden via env; the Responses API may require different model ids.
@@ -103,8 +158,8 @@ router.get('/', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit) || 0, 0), 200); // cap at 200
     const status = req.query.status;
     const params = [];
-    // Avoid selecting createdAt because older DBs may not have it yet
-    let sql = 'SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text FROM issues';
+    // Avoid selecting createdAt because older DBs may not have it yet, but include when available
+    let sql = 'SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text, same_collection, createdAt FROM issues';
     if (status) {
       sql += ' WHERE status = ?';
       params.push(status);
@@ -116,54 +171,7 @@ router.get('/', async (req, res) => {
       params.push(limit);
     }
     const [rows] = await db.query(sql, params);
-    // coordinate is stored as "lat,lon" or "lat, lon" string. Parse into numbers.
-    const parsed = rows.map(r => {
-      let lat = null;
-      let lon = null;
-      if (r.coordinate) {
-        const parts = String(r.coordinate).split(',').map(s => s.trim());
-        if (parts.length >= 2) {
-          const a = parseFloat(parts[0]);
-          const b = parseFloat(parts[1]);
-          if (!Number.isNaN(a) && !Number.isNaN(b)) {
-            lat = a; lon = b;
-          }
-        }
-      }
-      let assignedDepartments = null;
-      if (r.assigned_department) {
-        if (Array.isArray(r.assigned_department)) {
-          assignedDepartments = r.assigned_department;
-        } else {
-          try {
-            const parsed = JSON.parse(r.assigned_department);
-            if (Array.isArray(parsed)) {
-              assignedDepartments = parsed.map(String);
-            } else if (typeof parsed === 'string') {
-              assignedDepartments = [parsed];
-            }
-          } catch (_) {
-            assignedDepartments = String(r.assigned_department).split(',').map(s => s.trim()).filter(Boolean);
-          }
-        }
-      }
-
-      return {
-        id: r.id,
-        phone_number: r.phone_number,
-        description: r.description,
-        photo: r.photo,
-        emergency: !!r.emergency,
-        status: r.status,
-        assigned_departments: assignedDepartments,
-        assigned_department: assignedDepartments ? assignedDepartments.join(', ') : null,
-        description_pic_ai: r.description_pic_ai || null,
-        validation: r.validation === 1 || r.validation === true || r.validation === '1',
-        reason_text: r.reason_text || null,
-        latitude: lat,
-        longitude: lon,
-      };
-    });
+    const parsed = rows.map(toIssueDto);
     res.json(parsed);
   } catch (err) {
     console.error('Error fetching issues:', err);
@@ -179,46 +187,39 @@ router.get('/meta/departments', (req, res) => {
 // Get single issue
 router.get('/:id', async (req, res) => {
   try {
-    const [rows] = await req.db.query('SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text FROM issues WHERE id = ?', [req.params.id]);
-    if (!rows.length) return res.status(404).json({ message: 'Issue not found' });
-    const r = rows[0];
-    let lat = null, lon = null;
-    if (r.coordinate) {
-      const parts = String(r.coordinate).split(',').map(s => s.trim());
-      if (parts.length >= 2) {
-        const a = parseFloat(parts[0]);
-        const b = parseFloat(parts[1]);
-        if (!Number.isNaN(a) && !Number.isNaN(b)) { lat = a; lon = b; }
-      }
-    }
-    let assignedDepartments = null;
-    if (r.assigned_department) {
-      try {
-        const parsed = JSON.parse(r.assigned_department);
-        if (Array.isArray(parsed)) {
-          assignedDepartments = parsed.map(String);
-        } else if (typeof parsed === 'string') {
-          assignedDepartments = [parsed];
-        }
-      } catch (_) {
-        assignedDepartments = String(r.assigned_department).split(',').map(s => s.trim()).filter(Boolean);
-      }
+    const issueId = Number(req.params.id);
+    if (!issueId || Number.isNaN(issueId)) {
+      return res.status(400).json({ message: 'Invalid issue id' });
     }
 
+    const [rows] = await req.db.query(
+      'SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text, same_collection, createdAt FROM issues WHERE id = ?',
+      [issueId]
+    );
+    if (!rows.length) return res.status(404).json({ message: 'Issue not found' });
+
+    const currentRow = rows[0];
+    const headId = currentRow.same_collection ? Number(currentRow.same_collection) : currentRow.id;
+
+    const [groupRows] = await req.db.query(
+      'SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text, same_collection, createdAt FROM issues WHERE id = ? OR same_collection = ? ORDER BY id ASC',
+      [headId, String(headId)]
+    );
+
+    if (!groupRows.length) {
+      return res.status(404).json({ message: 'Issue group not found' });
+    }
+
+    const headRow = groupRows.find((row) => row.id === headId) || currentRow;
+    const mainIssue = toIssueDto(headRow);
+    const relatedIssues = groupRows
+      .filter((row) => row.id !== headRow.id)
+      .map(toIssueDto);
+
     res.json({
-      id: r.id,
-      phone_number: r.phone_number,
-      description: r.description,
-      photo: r.photo,
-      emergency: !!r.emergency,
-      status: r.status,
-      assigned_departments: assignedDepartments,
-      assigned_department: assignedDepartments ? assignedDepartments.join(', ') : null,
-      description_pic_ai: r.description_pic_ai || null,
-      validation: r.validation === 1 || r.validation === true || r.validation === '1',
-      reason_text: r.reason_text || null,
-      latitude: lat,
-      longitude: lon,
+      ...mainIssue,
+      related_issues: relatedIssues,
+      collection_head_id: headId,
     });
   } catch (err) {
     console.error('Error fetching issue:', err);
@@ -232,7 +233,7 @@ router.post('/:id/verify', authenticateToken, async (req, res) => {
     if (!['govt_authority', 'admin'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    const { action, department } = req.body; // action: 'approve' or 'deny'
+    const { action, department, ids } = req.body; // action: 'approve' or 'deny'
     if (!['approve', 'deny'].includes(action)) {
       return res.status(400).json({ message: 'action must be approve or deny' });
     }
@@ -246,28 +247,43 @@ router.post('/:id/verify', authenticateToken, async (req, res) => {
       assignedValue = JSON.stringify([department.trim()]);
     }
 
-    const params = [newStatus, assignedValue, req.params.id];
-    await req.db.execute('UPDATE issues SET status = ?, assigned_department = ? WHERE id = ?', params);
+    const primaryId = Number(req.params.id);
+    const targetIds = Array.isArray(ids) && ids.length
+      ? ids.map((v) => Number(v)).filter((v) => !Number.isNaN(v))
+      : [primaryId];
 
-    const [[updatedRaw]] = await req.db.execute('SELECT id, status, assigned_department FROM issues WHERE id = ?', [req.params.id]);
-    if (!updatedRaw) {
-      return res.status(404).json({ message: 'Issue not found after update' });
+    if (!targetIds.length) {
+      return res.status(400).json({ message: 'No valid issue ids provided' });
     }
 
-    let parsedAssigned = null;
-    if (updatedRaw.assigned_department) {
-      try {
-        const parsed = JSON.parse(updatedRaw.assigned_department);
-        if (Array.isArray(parsed)) {
-          parsedAssigned = parsed.map(String);
-        } else if (typeof parsed === 'string') {
-          parsedAssigned = [parsed];
-        }
-      } catch (_) {
-        parsedAssigned = String(updatedRaw.assigned_department).split(',').map(s => s.trim()).filter(Boolean);
-      }
+    const placeholders = targetIds.map(() => '?').join(', ');
+    const updateSql = `UPDATE issues SET status = ?, assigned_department = ? WHERE id IN (${placeholders})`;
+    await req.db.execute(updateSql, [newStatus, assignedValue, ...targetIds]);
+
+    const [updatedRows] = await req.db.query(
+      `SELECT id, status, assigned_department FROM issues WHERE id IN (${placeholders})`,
+      targetIds
+    );
+
+    if (!updatedRows.length) {
+      return res.status(404).json({ message: 'Issue(s) not found after update' });
     }
-    res.json({ message: 'Issue updated', issue: { id: updatedRaw.id, status: updatedRaw.status, assigned_departments: parsedAssigned, assigned_department: parsedAssigned ? parsedAssigned.join(', ') : null } });
+
+    const transformed = updatedRows.map((row) => {
+      const parsedAssigned = parseAssignedDepartments(row.assigned_department);
+      return {
+        id: row.id,
+        status: row.status,
+        assigned_departments: parsedAssigned,
+        assigned_department: parsedAssigned ? parsedAssigned.join(', ') : null,
+      };
+    });
+
+    const response = { message: 'Issues updated', issues: transformed };
+    if (transformed.length === 1) {
+      response.issue = transformed[0];
+    }
+    res.json(response);
   } catch (err) {
     console.error('Verify issue error:', err);
     res.status(500).json({ message: 'Failed to verify issue' });

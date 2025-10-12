@@ -42,7 +42,7 @@ function HeatmapLayer({ points }) {
 const GovtProblemPage = () => {
   const { logout } = useAuth()
   const [issues, setIssues] = useState([]);
-  const [selectedIssue, setSelectedIssue] = useState(null);
+  const [allIssues, setAllIssues] = useState([]);
   const [markersVisible, setMarkersVisible] = useState(false);
   const mapRef = useRef(null);
   const navigate = useNavigate();
@@ -51,7 +51,23 @@ const GovtProblemPage = () => {
     const fetchIssues = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/issues`);
-        setIssues(res.data || []);
+        const fetched = res.data || [];
+        const collectionCounts = fetched.reduce((acc, issue) => {
+          if (issue.same_collection) {
+            const headId = Number(issue.collection_head_id ?? issue.same_collection);
+            if (!Number.isNaN(headId) && headId > 0) {
+              acc[headId] = (acc[headId] || 0) + 1;
+            }
+          }
+          return acc;
+        }, {});
+        const heads = fetched.filter((issue) => !issue.same_collection);
+        const augmented = heads.map((issue) => ({
+          ...issue,
+          collectionCount: collectionCounts[issue.id] || 0,
+        }));
+        setAllIssues(fetched);
+        setIssues(augmented);
       } catch (err) {
         console.error('Failed to fetch issues', err);
       }
@@ -104,14 +120,21 @@ const GovtProblemPage = () => {
               url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
             />
             <MapZoomHandler />
-            <HeatmapLayer points={issues} />
+            <HeatmapLayer points={allIssues} />
 
             {markersVisible && issues.map(issue =>
               issue.latitude && issue.longitude ? (
                 <Marker key={issue.id} position={[issue.latitude, issue.longitude]}>
                   <Popup>
                     <div style={{ maxWidth: 300 }}>
-                      <h4>Issue #{issue.id}</h4>
+                      <h4>
+                        Issue #{issue.id}
+                        {issue.collectionCount > 0 && (
+                          <span style={{ color: '#c62828', marginLeft: 8, fontWeight: 600 }}>
+                            Multiple occurrences ({issue.collectionCount})
+                          </span>
+                        )}
+                      </h4>
                       <p>{issue.description || 'No description available'}</p>
                       {issue.description_pic_ai && (
                         <p><b>AI Photo Summary:</b> {issue.description_pic_ai}</p>
@@ -153,7 +176,14 @@ const GovtProblemPage = () => {
               issues.map((issue) => (
                 <li key={issue.id}>
                   <div className={styles.text}>
-                    <p><b>ID:</b> {issue.id}</p>
+                    <p>
+                      <b>ID:</b> {issue.id}
+                      {issue.collectionCount > 0 && (
+                        <span style={{ color: '#c62828', marginLeft: 8, fontWeight: 600 }}>
+                          Multiple occurrences ({issue.collectionCount})
+                        </span>
+                      )}
+                    </p>
                     <p><b>Description:</b> {issue.description}</p>
                     {issue.description_pic_ai && <p><b>AI Photo Summary:</b> {issue.description_pic_ai}</p>}
                     {typeof issue.validation === 'boolean' && (

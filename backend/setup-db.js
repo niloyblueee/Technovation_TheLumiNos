@@ -104,13 +104,15 @@ async function setupDatabase() {
         photo TEXT(60000),
         emergency BOOLEAN DEFAULT FALSE,
         status ENUM('pending', 'in_progress', 'resolved', 'rejected') DEFAULT 'pending',
-        assigned_department VARCHAR(100) NULL
+        assigned_department VARCHAR(100) NULL,
         description_pic_AI VARCHAR(255) NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         validation boolean DEFAULT FALSE,
-        REASON_TEXT VARCHAR(255) NULL
+        REASON_TEXT VARCHAR(255) NULL,
+        same_collection VARCHAR(255) NULL
       )
     `);
+
 
 
     console.log('✅ Issues table created');

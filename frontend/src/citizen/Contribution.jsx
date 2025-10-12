@@ -1,8 +1,8 @@
 // src/citizen/Contribution.jsx
 
 import React, { useEffect, useMemo, useState } from 'react';
-import './Contribution.css';
 import axios from 'axios';
+import './Contribution.css';
 import { useAuth } from '../contexts/AuthContext';
 import CitizenNav from './CitizenNav';
 
@@ -12,81 +12,99 @@ const ContributionPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // First, let's install the required icons package
-    useEffect(() => {
-        const installIcons = async () => {
-            try {
-                await import('react-icons/fa');
-            } catch (error) {
-                console.error('Failed to load icons:', error);
-            }
-        };
-        installIcons();
-    }, []);
-
-    // Placeholder: leave as-is (user trash collection etc.)
     const historyData = [
-        { item: 'plastic', count: 10 },
-        { item: 'Bottle', count: 20 },
-        { item: 'Chips Packet', count: 5 },
+        { item: 'Plastic bottles', count: 18 },
+        { item: 'Food packaging', count: 9 },
+        { item: 'Metal cans', count: 7 },
     ];
 
-    // Cleanliness awards dummy values
     const cleanPoints = 150;
     const cleanRedeemable = 75;
 
     useEffect(() => {
         const fetchIssues = async () => {
+            setLoading(true);
+            setError('');
             try {
                 const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-                const { data } = await axios.get(`${base}/api/issues`);
+                const { data } = await axios.get(`${base.replace(/\/$/, '')}/api/issues`, { withCredentials: true });
                 if (!Array.isArray(data)) {
                     setMyIssues([]);
-                } else {
-                    // Filter to current user's issues by phone number
-                    const phone = user?.phone_number;
-                    const mine = phone ? data.filter(it => String(it.phone_number || '') === String(phone)) : [];
-                    setMyIssues(mine);
+                    return;
                 }
+                const phone = user?.phone_number;
+                const mine = phone ? data.filter((it) => String(it.phone_number || '') === String(phone)) : [];
+                setMyIssues(mine);
             } catch (e) {
                 setError(e.response?.data?.message || 'Failed to load issues');
             } finally {
                 setLoading(false);
             }
         };
+
         if (isAuthenticated) fetchIssues();
-        else { setLoading(false); setMyIssues([]); }
+        else {
+            setLoading(false);
+            setMyIssues([]);
+        }
     }, [isAuthenticated, user?.phone_number]);
 
-    // Compute points per issue per the rules
     const computed = useMemo(() => {
-        const rows = myIssues.map(it => {
-            const emergency = !!it.emergency;
+        const rows = myIssues.map((it) => {
+            const emergency = Boolean(it.emergency);
             const status = String(it.status || '').toLowerCase();
             const max = emergency ? 25 : 10;
-            let pts = 0;
-            if (status === 'in_progress' || status === 'resolved') {
-                pts = max; // approved/verified
+            let points = 0;
+            if (status === 'in_progress' || status === 'resolved' || status.includes('complete')) {
+                points = max;
             } else if (status === 'rejected' && emergency) {
-                pts = -20; // false emergency penalty
-            } else {
-                pts = 0; // pending or rejected (non-emergency)
+                points = -20;
             }
-            // Prepare a label for the issue
-            const label = it.description ? (it.description.length > 40 ? it.description.slice(0, 37) + '…' : it.description) : `Issue #${it.id}`;
+            const label = it.description ? (it.description.length > 64 ? `${it.description.slice(0, 61)}…` : it.description) : `Issue #${it.id}`;
             return {
                 id: it.id,
                 label,
                 emergency,
                 status,
-                points: pts,
+                points,
                 max,
+                submittedAt: it.created_at || it.createdAt || null,
             };
         });
+
         const total = rows.reduce((sum, r) => sum + (r.points || 0), 0);
-        const redeemable = Math.floor(total / 10); // one tenth of total points
-        return { rows, total, redeemable };
+        const redeemable = Math.max(0, Math.floor(total / 10));
+        const emergencyCount = rows.filter((r) => r.emergency).length;
+        const completed = rows.filter((r) => (r.status || '').includes('progress') || (r.status || '').includes('resolve')).length;
+        return { rows, total, redeemable, emergencyCount, completed };
     }, [myIssues]);
+
+    const latestActivity = useMemo(() => {
+        const timestamps = myIssues
+            .map((it) => it.updated_at || it.updatedAt || it.created_at || it.createdAt)
+            .map((value) => {
+                const date = value ? new Date(value) : null;
+                return date && !Number.isNaN(date.getTime()) ? date.getTime() : null;
+            })
+            .filter((value) => value !== null);
+        if (!timestamps.length) return null;
+        return new Date(Math.max(...timestamps));
+    }, [myIssues]);
+
+    const formatStatus = (status) => {
+        const value = (status || '').toLowerCase();
+        if (value.includes('resolve') || value.includes('complete')) return 'Completed';
+        if (value.includes('progress')) return 'In Progress';
+        if (value.includes('reject')) return 'Rejected';
+        return 'Pending';
+    };
+
+    const formatDate = (value) => {
+        if (!value) return 'Awaiting activity';
+        const date = typeof value === 'string' || typeof value === 'number' ? new Date(value) : value;
+        if (!date || Number.isNaN(date.getTime())) return 'Awaiting activity';
+        return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    };
 
     const handleRedeemClick = () => {
         alert('Navigating to online redeem options!');
@@ -95,77 +113,112 @@ const ContributionPage = () => {
     return (
         <>
             <CitizenNav />
-            <div className="contribution-page citizen-content">
-                <h1 className="main-title">Thank You For keeping Your Own Area Clean and sustainable</h1>
-                <p className="sub-title">Track Your Contributions</p>
-                <div className="content-container">
-                    {/* Left Panel: Reported Issues and Points */}
-                    <div className="panel left-panel">
-                        <div className="panel-header">
-                            <div className="header-item">Reported Issue</div>
-                            <div className="header-item">Points</div>
+            <div className="contrib-shell citizen-content">
+                <div className="contrib-layout">
+                    <header className="contrib-hero">
+                        <div className="contrib-hero-text">
+                            <h1>Community Contributions</h1>
+                            <p>Earn points for every verified report and use them to unlock community rewards.</p>
                         </div>
-                        {loading && (
-                            <div className="list-item">
-                                <div className="list-text">Loading your reported issues…</div>
-                                <div className="list-text">—</div>
+                        <div className="contrib-stats" aria-label="Contribution summary">
+                            <div className="contrib-stat-card">
+                                <span className="contrib-stat-label">Total Points</span>
+                                <span className="contrib-stat-value">{computed.total}</span>
                             </div>
-                        )}
-                        {error && (
-                            <div className="list-item" style={{ color: 'red' }}>
-                                <div className="list-text">{error}</div>
-                                <div className="list-text">—</div>
+                            <div className="contrib-stat-card">
+                                <span className="contrib-stat-label">Redeemable</span>
+                                <span className="contrib-stat-value">{computed.redeemable}</span>
                             </div>
-                        )}
-                        {!loading && !error && computed.rows.length === 0 && (
-                            <div className="list-item">
-                                <div className="list-text">No reported issues yet</div>
-                                <div className="list-text">0</div>
+                            <div className="contrib-stat-card">
+                                <span className="contrib-stat-label">Emergency Reports</span>
+                                <span className="contrib-stat-value">{computed.emergencyCount}</span>
                             </div>
-                        )}
-                        {!loading && !error && computed.rows.map((row) => (
-                            <div key={row.id} className="list-item">
-                                <div className="list-text">{row.label}{row.emergency ? ' (Emergency)' : ''}</div>
-                                <div className="list-text">{row.points}/{row.max}</div>
+                            <div className="contrib-stat-card">
+                                <span className="contrib-stat-label">Resolved</span>
+                                <span className="contrib-stat-value">{computed.completed}</span>
                             </div>
-                        ))}
-
-                        {/* Total points button (used for yearly award) */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-                            <button className="redeem-button" title="Total points used for yearly award">
-                                Total Points: {computed.total}
-                            </button>
                         </div>
-                    </div>
+                    </header>
 
-                    {/* Right Panels: Awards and History */}
-                    <div className="right-panels">
-                        {/* Top Right Panel: Cleanliness Awards */}
-                        <div className="panel award-panel">
-                            <h2 className="panel-title">CleanLiness Awards</h2>
-                            <div className="award-item">
-                                <div className="award-label">Clean Point</div>
-                                <div className="award-value">{cleanPoints}</div>
+                    <div className="contrib-content">
+                        <section className="contrib-issues">
+                            <div className="contrib-table-head">
+                                <span>Reported Issue</span>
+                                <span>Status</span>
+                                <span>Points</span>
                             </div>
-                            <div className="award-item">
-                                <div className="award-label">Redeemable</div>
-                                <div className="award-value">{cleanRedeemable} Tk</div>
-                            </div>
-                            <button className="redeem-button" onClick={handleRedeemClick}>
-                                Online Redeem Options
-                            </button>
-                        </div>
 
-                        {/* Bottom Right Panel: History */}
-                        <div className="panel history-panel">
-                            <h2 className="panel-title">HISTORY</h2>
-                            {historyData.map((item, index) => (
-                                <div key={index} className="list-item">
-                                    <div className="list-text">{item.item}</div>
-                                    <div className="list-text">{item.count}</div>
+                            <div className="contrib-table-body">
+                                {loading && (
+                                    <div className="contrib-state contrib-loading">Loading your contributions…</div>
+                                )}
+
+                                {error && (
+                                    <div className="contrib-state contrib-error">{error}</div>
+                                )}
+
+                                {!loading && !error && computed.rows.map((row) => (
+                                    <article key={row.id} className="contrib-row">
+                                        <div className="contrib-issue">
+                                            <h2 className="contrib-issue-title">{row.label}</h2>
+                                            <div className="contrib-issue-meta">
+                                                {row.emergency && <span className="contrib-meta-chip danger">Emergency</span>}
+                                                {row.submittedAt && (
+                                                    <span className="contrib-meta-chip">Submitted {formatDate(row.submittedAt)}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="contrib-status">
+                                            <span className={`contrib-status-badge ${formatStatus(row.status).toLowerCase().replace(' ', '-')}`}>
+                                                {formatStatus(row.status)}
+                                            </span>
+                                        </div>
+                                        <div className="contrib-points">
+                                            <span className={`contrib-points-chip ${row.points < 0 ? 'negative' : ''}`}>
+                                                {row.points}/{row.max}
+                                            </span>
+                                        </div>
+                                    </article>
+                                ))}
+
+                                {!loading && !error && computed.rows.length === 0 && (
+                                    <div className="contrib-state contrib-empty">
+                                        You haven’t earned any points yet. Submit an issue to start contributing!
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
+                        <aside className="contrib-side">
+                            <div className="contrib-card">
+                                <h3>Cleanliness Awards</h3>
+                                <div className="contrib-award">
+                                    <span className="contrib-award-label">Clean Points</span>
+                                    <span className="contrib-award-value">{cleanPoints}</span>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="contrib-award">
+                                    <span className="contrib-award-label">Redeemable (Tk)</span>
+                                    <span className="contrib-award-value">{cleanRedeemable}</span>
+                                </div>
+                                <button className="contrib-redeem" onClick={handleRedeemClick}>
+                                    View Redeem Options
+                                </button>
+                                <p className="contrib-card-note">Cash in your points for sustainable products or utility bill credits.</p>
+                            </div>
+
+                            <div className="contrib-card">
+                                <h3>Activity Snapshot</h3>
+                                <p className="contrib-sync">Latest update: {latestActivity ? formatDate(latestActivity) : 'No activity yet'}</p>
+                                <ul className="contrib-history">
+                                    {historyData.map((item, index) => (
+                                        <li key={index}>
+                                            <span>{item.item}</span>
+                                            <span>{item.count}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </aside>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const DEPARTMENT_ROLES = ['police', 'health', 'fire', 'water', 'electricity'];
 
 // lightweight auth
 const authenticateToken = (req, res, next) => {
@@ -181,7 +182,7 @@ router.get('/', async (req, res) => {
 
 // Departments list (static for now; can be DB driven later)
 router.get('/meta/departments', (req, res) => {
-  res.json({ departments: ['police', 'health', 'fire', 'water', 'electricity'] });
+  res.json({ departments: DEPARTMENT_ROLES });
 });
 
 // Get single issue
@@ -224,6 +225,57 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     console.error('Error fetching issue:', err);
     res.status(500).json({ message: 'Failed to fetch issue' });
+  }
+});
+
+router.post('/:id/resolve', authenticateToken, async (req, res) => {
+  try {
+    const requesterRole = req.user?.role;
+    if (!DEPARTMENT_ROLES.includes(requesterRole)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const issueId = Number(req.params.id);
+    if (!issueId || Number.isNaN(issueId)) {
+      return res.status(400).json({ message: 'Invalid issue id' });
+    }
+
+    const [rows] = await req.db.query(
+      'SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text, same_collection, createdAt FROM issues WHERE id = ? LIMIT 1',
+      [issueId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: 'Issue not found' });
+    }
+
+    const issueRow = rows[0];
+    const assignedDepartments = parseAssignedDepartments(issueRow.assigned_department) || [];
+    const normalizedDepartments = assignedDepartments.map((dept) => String(dept).toLowerCase());
+
+    if (!normalizedDepartments.includes(requesterRole)) {
+      return res.status(403).json({ message: 'Issue is not assigned to your department' });
+    }
+
+    if (issueRow.status === 'resolved') {
+      return res.json({ message: 'Issue already resolved', issue: toIssueDto(issueRow) });
+    }
+
+    await req.db.execute('UPDATE issues SET status = ? WHERE id = ?', ['resolved', issueId]);
+
+    const [[updatedRow]] = await req.db.query(
+      'SELECT id, phone_number, coordinate, description, photo, emergency, status, assigned_department, description_pic_AI AS description_pic_ai, validation, REASON_TEXT AS reason_text, same_collection, createdAt FROM issues WHERE id = ? LIMIT 1',
+      [issueId]
+    );
+
+    if (!updatedRow) {
+      return res.status(404).json({ message: 'Issue not found after update' });
+    }
+
+    res.json({ message: 'Issue marked as resolved', issue: toIssueDto(updatedRow) });
+  } catch (err) {
+    console.error('Resolve issue error:', err);
+    res.status(500).json({ message: 'Failed to resolve issue' });
   }
 });
 

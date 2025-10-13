@@ -24,6 +24,7 @@ import HealthDepartment from './departments/HealthDepartment.jsx';
 import FireDepartment from './departments/FireDepartment.jsx';
 import WaterDepartment from './departments/WaterDepartment.jsx';
 import ElectricityDepartment from './departments/ElectricityDepartment.jsx';
+import PoliceIssueDetails from './departments/PoliceIssueDetails.jsx';
 
 
 // Protected Route component
@@ -104,6 +105,35 @@ const AdminProtectedRoute = ({ children }) => {
   return children;
 };
 
+const RoleProtectedRoute = ({ allowedRoles, children }) => {
+  const { isAuthenticated, loading, user } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white'
+      }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (!allowedRoles.includes(user?.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
 function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id'}>
@@ -170,41 +200,49 @@ function App() {
               <Route
                 path="/police"
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute allowedRoles={['police']}>
                     <PoliceDepartment />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/police/issues/:id"
+                element={
+                  <RoleProtectedRoute allowedRoles={['police']}>
+                    <PoliceIssueDetails />
+                  </RoleProtectedRoute>
                 }
               />
               <Route
                 path="/health"
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute allowedRoles={['health']}>
                     <HealthDepartment />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 }
               />
               <Route
                 path="/fire"
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute allowedRoles={['fire']}>
                     <FireDepartment />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 }
               />
               <Route
                 path="/water"
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute allowedRoles={['water']}>
                     <WaterDepartment />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 }
               />
               <Route
                 path="/electricity"
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute allowedRoles={['electricity']}>
                     <ElectricityDepartment />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 }
               />
 

@@ -1,0 +1,478 @@
+:root {
+    --card-bg: rgba(14, 24, 46, 0.7);
+    --accent: #2f80ed;
+    --accent-soft: rgba(47, 128, 237, 0.2);
+    --accent-strong: rgba(47, 128, 237, 0.35);
+    --danger: #ff5f6d;
+    --success: #2ecc71;
+    --text: #f5f8ff;
+    --text-soft: rgba(245, 248, 255, 0.7);
+    --border: rgba(255, 255, 255, 0.08);
+}
+
+.wrapper {
+    min-height: 100vh;
+    padding: 2.5rem 3rem 3rem;
+    background: radial-gradient(circle at 20% 20%, rgba(47, 128, 237, 0.18), transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(45, 197, 253, 0.22), transparent 45%),
+        linear-gradient(135deg, #090b1a 0%, #101730 50%, #05070f 100%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+}
+
+.loadingScreen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    background: #0a1122;
+    color: var(--text);
+    font-size: 1.1rem;
+}
+
+.loadingScreen svg {
+    font-size: 2rem;
+    color: var(--accent);
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.subtitle {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.75rem;
+    color: var(--text-soft);
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.refreshButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.9rem 1.35rem;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: linear-gradient(135deg, rgba(47, 128, 237, 0.12), rgba(47, 128, 237, 0.04));
+    color: var(--text);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.refreshButton:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.refreshButton:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(47, 128, 237, 0.25);
+}
+
+.statsRow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.statCard {
+    position: relative;
+    padding: 1.6rem;
+    border-radius: 1.25rem;
+    background: linear-gradient(145deg, rgba(14, 24, 46, 0.65), rgba(14, 24, 46, 0.3));
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.statCard::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(circle at top right, rgba(47, 128, 237, 0.25), transparent 60%);
+    opacity: 0.8;
+}
+
+.statLabel {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.statValue {
+    font-size: 2.3rem;
+    font-weight: 700;
+    margin-top: 0.45rem;
+}
+
+.statValueResolved {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--success);
+    margin-top: 0.45rem;
+}
+
+.statValueAlert {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--danger);
+    margin-top: 0.45rem;
+}
+
+.statIcon {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-size: 2.4rem;
+    color: rgba(255, 255, 255, 0.18);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 1.8rem;
+}
+
+.mapCard,
+.listCard,
+.resolvedSection {
+    border-radius: 1.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 18px 46px rgba(6, 12, 25, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+
+.mapCard::before,
+.listCard::before,
+.resolvedSection::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, rgba(47, 128, 237, 0.12), transparent 65%);
+    pointer-events: none;
+}
+
+.mapHeader,
+.listHeader,
+.resolvedHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.75rem 1.8rem 0;
+    position: relative;
+    z-index: 2;
+}
+
+.mapHeader h2,
+.listHeader h2,
+.resolvedHeader h2 {
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.mapHeader p {
+    margin: 0.3rem 0 0;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+}
+
+.focusChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(47, 128, 237, 0.18);
+    border: 1px solid rgba(47, 128, 237, 0.45);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+}
+
+.mapContainer {
+    position: relative;
+    height: 430px;
+    margin: 1.25rem 1.4rem 1.6rem;
+    border-radius: 1.3rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.loadingOverlay,
+.errorOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: rgba(9, 13, 24, 0.82);
+    z-index: 4;
+    text-align: center;
+}
+
+.loadingOverlay span {
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-top-color: var(--accent);
+    animation: spin 0.9s linear infinite;
+}
+
+.errorOverlay button {
+    margin-top: 0.4rem;
+    padding: 0.65rem 1.1rem;
+    border-radius: 0.8rem;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.listCard {
+    display: flex;
+    flex-direction: column;
+}
+
+.listHeader span,
+.resolvedHeader span {
+    font-size: 0.9rem;
+    color: var(--text-soft);
+}
+
+.issueList {
+    padding: 1rem 1.6rem 1.6rem;
+    height: 430px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.issueList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.issueList::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+}
+
+.issueCard {
+    position: relative;
+    padding: 1.1rem 1.1rem 1.15rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: border 0.2s ease;
+}
+
+.issueCardActive {
+    border-color: rgba(47, 128, 237, 0.7);
+    box-shadow: 0 10px 24px rgba(47, 128, 237, 0.18);
+}
+
+.issueMeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
+.issueId {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.statusBadge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    background: var(--accent-strong);
+}
+
+.statusEmergency {
+    background: rgba(255, 95, 109, 0.32);
+    border: 1px solid rgba(255, 95, 109, 0.5);
+}
+
+.issueDescription {
+    margin: 0 0 0.9rem;
+    color: rgba(245, 248, 255, 0.78);
+    line-height: 1.45;
+    font-size: 0.95rem;
+}
+
+.issueFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-soft);
+}
+
+.issueFooter button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.8rem;
+    border: none;
+    background: rgba(47, 128, 237, 0.28);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.25s ease;
+}
+
+.issueFooter button:hover {
+    transform: translateX(4px);
+}
+
+.emptyState {
+    margin: 0 1.6rem 1.6rem;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    text-align: center;
+    color: var(--text-soft);
+}
+
+.resolvedSection {
+    margin-top: 2.2rem;
+    padding-bottom: 1.8rem;
+}
+
+.resolvedGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.1rem;
+    padding: 0 1.8rem 0;
+}
+
+.resolvedCard {
+    padding: 1.1rem;
+    border-radius: 1rem;
+    background: rgba(46, 204, 113, 0.12);
+    border: 1px solid rgba(46, 204, 113, 0.32);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+}
+
+.resolvedId {
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.popupContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 220px;
+}
+
+.popupContent h3 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.popupContent button {
+    align-self: flex-start;
+    padding: 0.45rem 0.75rem;
+    border-radius: 0.7rem;
+    border: none;
+    background: rgba(47, 128, 237, 0.28);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.leafletRoot {
+    filter: saturate(1.1) contrast(1.05);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 1200px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mapContainer,
+    .issueList {
+        height: 360px;
+    }
+}
+
+@media (max-width: 768px) {
+    .wrapper {
+        padding: 1.8rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .title {
+        font-size: 1.9rem;
+    }
+
+    .mapContainer,
+    .issueList {
+        height: 320px;
+    }
+}

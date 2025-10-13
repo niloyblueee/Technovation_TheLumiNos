@@ -33,7 +33,7 @@ async function setupDatabase() {
         national_id VARCHAR(20) UNIQUE,
         sex ENUM('male', 'female', 'other') NOT NULL,
         phone_number VARCHAR(20) NOT NULL,
-        role ENUM('admin', 'govt_authority', 'citizen') DEFAULT 'citizen',
+        role ENUM('admin', 'govt_authority', 'citizen', 'police', 'health', 'fire', 'water', 'electricity') DEFAULT 'citizen',
         status ENUM('active', 'pending', 'rejected') DEFAULT 'active',
         profileImage VARCHAR(255),
         googleId VARCHAR(100) UNIQUE,
@@ -43,6 +43,8 @@ async function setupDatabase() {
       )
     `);
     console.log('✅ Users table created');
+
+
 
     // Create citizens table
     await connection.execute(`
@@ -61,7 +63,7 @@ async function setupDatabase() {
       CREATE TABLE IF NOT EXISTS govt_authorities (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        department VARCHAR(100) NOT NULL,
+        department VARCHAR(100) NOT NULL, 
         region ENUM('dhaka_north', 'dhaka_south') NOT NULL,
         admin_level ENUM('super', 'regular') DEFAULT 'regular',
         permissions JSON,

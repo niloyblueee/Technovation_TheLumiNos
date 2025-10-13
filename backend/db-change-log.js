@@ -62,3 +62,16 @@ await connection.execute(`
     `);
 
 //last line is added
+
+
+
+//commit: db update for user role enum expansion for department specific roles 
+// this line from user table
+//role ENUM('admin', 'govt_authority', 'citizen', 'police', 'health', 'fire', 'water', 'electricity') DEFAULT 'citizen',
+
+await connection.execute(`
+      ALTER TABLE users
+      MODIFY COLUMN role ENUM('admin', 'govt_authority', 'citizen', 'police', 'health', 'fire', 'water', 'electricity') DEFAULT 'citizen'
+    `);
+
+//----x----

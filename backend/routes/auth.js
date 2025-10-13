@@ -53,6 +53,9 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Validation middleware
+const ALLOWED_ROLES = ['citizen', 'govt_authority', 'police', 'health', 'fire', 'water', 'electricity'];
+const AUTO_APPROVED_ROLES = ALLOWED_ROLES.filter(role => role !== 'govt_authority');
+
 const validateRegistration = [
     body('firstName').trim().isLength({ min: 2, max: 50 }).withMessage('First name must be between 2 and 50 characters'),
     body('lastName').trim().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
@@ -61,7 +64,7 @@ const validateRegistration = [
     body('phone_number').trim().isLength({ min: 6 }).withMessage('Phone number is required'),
     body('national_id').trim().isLength({ min: 10 }).withMessage('National ID must be at least 10 characters long'),
     body('sex').isIn(['male', 'female', 'other']).withMessage('Invalid sex'),
-    body('role').isIn(['citizen', 'govt_authority']).withMessage('Invalid role'),
+    body('role').isIn(ALLOWED_ROLES).withMessage('Invalid role'),
     // govt_authority-only requirements
     body('department').if(body('role').equals('govt_authority')).trim().notEmpty().withMessage('Department is required for government authorities'),
     body('region').if(body('role').equals('govt_authority')).isIn(['dhaka_north', 'dhaka_south']).withMessage('Invalid region')
@@ -93,7 +96,7 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
 
         // normalize inputs
         role = (role || 'citizen').toLowerCase();
-        if (!['citizen', 'govt_authority'].includes(role)) {
+        if (!ALLOWED_ROLES.includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
         }
 
@@ -189,7 +192,7 @@ router.post('/register', uploadProfileImage, validateRegistration, async (req, r
         // Return success response with user data and token
         return res.status(201).json({
             message: role === 'govt_authority' ? 'Registration submitted for approval' : 'User registered successfully',
-            token: role === 'citizen' ? token : null, // Only return token for citizens
+            token: AUTO_APPROVED_ROLES.includes(role) ? token : null,
             user: {
                 id: user.id,
                 firstName: user.firstName,

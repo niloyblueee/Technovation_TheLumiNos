@@ -18,6 +18,17 @@ const LoginForm = () => {
     const { login, googleLogin } = useAuth();
     const navigate = useNavigate();
 
+    const roleRedirects = {
+        admin: '/admin',
+        govt_authority: '/govt-dashboard',
+        citizen: '/citizen',
+        police: '/police',
+        health: '/health',
+        fire: '/fire',
+        water: '/water',
+        electricity: '/electricity'
+    };
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -41,9 +52,7 @@ const LoginForm = () => {
         const result = await login(payload);
         if (result.success) {
             const role = result.user?.role;
-            if (role === 'admin') navigate('/admin');
-            else if (role === 'govt_authority') navigate('/govt-dashboard');
-            else navigate('/citizen');
+            navigate(roleRedirects[role] || '/citizen');
         }
         setLoading(false);
     };
@@ -54,9 +63,7 @@ const LoginForm = () => {
             const result = await googleLogin(credentialResponse.credential);
             if (result.success) {
                 const role = result.user?.role;
-                if (role === 'admin') navigate('/admin');
-                else if (role === 'govt_authority') navigate('/govt-dashboard');
-                else navigate('/citizen');
+                navigate(roleRedirects[role] || '/citizen');
             }
         } catch (error) {
             toast.error('Google Sign-In failed');

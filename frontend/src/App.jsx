@@ -19,6 +19,11 @@ import GovtDashboard from './authority/GovtDashboard.jsx';
 import GovtRewardPage from './authority/GovtRewardPage.jsx';
 import GovtProblemPage from './authority/GovtProblemPage.jsx';
 import IssueVerification from './authority/IssueVerification.jsx';
+import PoliceDepartment from './departments/PoliceDepartment.jsx';
+import HealthDepartment from './departments/HealthDepartment.jsx';
+import FireDepartment from './departments/FireDepartment.jsx';
+import WaterDepartment from './departments/WaterDepartment.jsx';
+import ElectricityDepartment from './departments/ElectricityDepartment.jsx';
 
 
 // Protected Route component
@@ -52,11 +57,19 @@ const ProtectedRoute = ({ children }) => {
 // Default redirect based on auth + role
 const DefaultRedirect = () => {
   const { isAuthenticated, user, loading } = useAuth();
+  const roleRedirects = {
+    admin: '/admin',
+    govt_authority: '/govt-dashboard',
+    citizen: '/citizen',
+    police: '/police',
+    health: '/health',
+    fire: '/fire',
+    water: '/water',
+    electricity: '/electricity'
+  };
   if (loading) return null;
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
-  if (user?.role === 'admin') return <Navigate to="/admin" replace />;
-  if (user?.role === 'govt_authority') return <Navigate to="/govt-dashboard" replace />;
-  return <Navigate to="/citizen" replace />;
+  return <Navigate to={roleRedirects[user?.role] || '/citizen'} replace />;
 };
 
 // Admin Protected Route component
@@ -153,6 +166,47 @@ function App() {
               <Route path="/trackprogress" element={<TrackProgress />} />
               <Route path="/issue-submission" element={<IssueSubmission />} />
               <Route path="/contribution" element={<Contribution />} />
+
+              <Route
+                path="/police"
+                element={
+                  <ProtectedRoute>
+                    <PoliceDepartment />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/health"
+                element={
+                  <ProtectedRoute>
+                    <HealthDepartment />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/fire"
+                element={
+                  <ProtectedRoute>
+                    <FireDepartment />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/water"
+                element={
+                  <ProtectedRoute>
+                    <WaterDepartment />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/electricity"
+                element={
+                  <ProtectedRoute>
+                    <ElectricityDepartment />
+                  </ProtectedRoute>
+                }
+              />
 
 
 

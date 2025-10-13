@@ -55,13 +55,34 @@ const RegisterForm = () => {
     const roleIdLabel = (role) => {
         if (role === 'admin') return 'Admin National ID';
         if (role === 'govt_authority') return 'Govt Authority National ID';
+        if (role === 'police') return 'Police Department ID';
+        if (role === 'health') return 'Health Department ID';
+        if (role === 'fire') return 'Fire Service ID';
+        if (role === 'water') return 'Water Management ID';
+        if (role === 'electricity') return 'Electricity Department ID';
         return 'Citizen National ID';
     };
 
     const roles = [
         { value: 'citizen', label: 'Citizen' },
-        { value: 'govt_authority', label: 'Government Authority' }
+        { value: 'govt_authority', label: 'Government Authority' },
+        { value: 'police', label: 'Police Department' },
+        { value: 'health', label: 'Health Department' },
+        { value: 'fire', label: 'Fire Service' },
+        { value: 'water', label: 'Water Management' },
+        { value: 'electricity', label: 'Electricity Department' }
     ];
+
+    const roleRedirects = {
+        admin: '/admin',
+        govt_authority: '/govt-dashboard',
+        citizen: '/citizen',
+        police: '/police',
+        health: '/health',
+        fire: '/fire',
+        water: '/water',
+        electricity: '/electricity'
+    };
 
     const handleChange = (e) => {
         setFormData({
@@ -107,9 +128,7 @@ const RegisterForm = () => {
         const result = await register(formData);
         if (result.success) {
             const role = result.user?.role;
-            if (role === 'admin') navigate('/admin');
-            else if (role === 'govt_authority') navigate('/govt-dashboard');
-            else navigate('/citizen');
+            navigate(roleRedirects[role] || '/citizen');
         }
         setLoading(false);
     };
@@ -120,9 +139,7 @@ const RegisterForm = () => {
             const result = await googleLogin(credentialResponse.credential);
             if (result.success) {
                 const role = result.user?.role;
-                if (role === 'admin') navigate('/admin');
-                else if (role === 'govt_authority') navigate('/govt-dashboard');
-                else navigate('/citizen');
+                navigate(roleRedirects[role] || '/citizen');
             }
         } catch (error) {
             toast.error('Google Sign-In failed');
@@ -252,6 +269,24 @@ const RegisterForm = () => {
                     </div>
                 </div>
             )}
+
+            {/* Phone number field (common for all roles) */}
+            {formData.role && (
+                <div className="form-group-signup">
+                    <div className="input-wrapper">
+                        <FiUser className="input-icon" />
+                        <input
+                            type="text"
+                            name="phone_number"
+                            value={formData.phone_number}
+                            onChange={handleChange}
+                            placeholder="Phone Number"
+                            required
+                            className="form-input"
+                        />
+                    </div>
+                </div>
+            )}
             {/* Citizen-specific fields */}
             {formData.role === 'citizen' && (
                 <>
@@ -264,20 +299,6 @@ const RegisterForm = () => {
                                 value={formData.address}
                                 onChange={handleChange}
                                 placeholder="Address"
-                                required
-                                className="form-input"
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group-signup">
-                        <div className="input-wrapper">
-                            <FiUser className="input-icon" />
-                            <input
-                                type="text"
-                                name="phone_number"
-                                value={formData.phone_number}
-                                onChange={handleChange}
-                                placeholder="Phone Number"
                                 required
                                 className="form-input"
                             />
@@ -302,20 +323,6 @@ const RegisterForm = () => {
             {/* Government Authority-specific fields */}
             {formData.role === 'govt_authority' && (
                 <>
-                    <div className="form-group-signup">
-                        <div className="input-wrapper">
-                            <FiUser className="input-icon" />
-                            <input
-                                type="text"
-                                name="phone_number"
-                                value={formData.phone_number}
-                                onChange={handleChange}
-                                placeholder="Phone Number"
-                                required
-                                className="form-input"
-                            />
-                        </div>
-                    </div>
                     <div className="form-group-signup">
                         <div className="input-wrapper">
                             <FiBookOpen className="input-icon" />

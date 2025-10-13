@@ -1,5 +1,5 @@
 .wholeContainer {
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   font-family: 'Poppins', sans-serif;
   background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
@@ -12,7 +12,7 @@
 
 .upperPart {
   width: 100%;
-  height: 60px;
+  min-height: 60px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -25,6 +25,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   position: relative;
   padding: 0 20px;
+  gap: 12px;
 }
 
 .upperPart h1 {
@@ -128,6 +129,21 @@
   }
 }
 
+@media screen and (max-width: 600px) {
+  .statsPanel {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .statCard h3 {
+    font-size: 0.95rem;
+  }
+
+  .statCard p {
+    font-size: 1.6rem;
+  }
+}
+
 .statCard:hover {
   transform: translateY(-5px);
 }
@@ -157,12 +173,7 @@
 }
 
 .mapPortion {
-  height: calc(100vh - 50px);
-  width: 100%;
-  display: flex;
-}
-
-.mapPortion {
+  min-height: calc(100vh - 50px);
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 250px;
@@ -175,11 +186,24 @@
   .mapPortion {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
+    min-height: auto;
+    padding: 0 15px 15px;
+    gap: 16px;
   }
 
   .mapContainer {
-    height: 60vh;
+    min-height: 55vh;
     /* Adjust map height for mobile */
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .mapPortion {
+    padding: 0 12px 40px;
+  }
+
+  .mapContainer {
+    min-height: 360px;
   }
 }
 
@@ -247,6 +271,22 @@
   .searchBox,
   .filterBox {
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .searchPanel {
+    position: static;
+    background: rgba(25, 25, 25, 0.85);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .searchBox,
+  .filterBox {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -341,6 +381,29 @@
     width: calc(50% - 8px);
     /* 2 buttons per row on very small screens */
     padding: 10px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .adminButton {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .actionButton {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .actionButton span {
+    display: inline;
+    font-size: 0.95rem;
+  }
+
+  .actionButton svg {
+    font-size: 1.2rem;
   }
 }
 
@@ -439,6 +502,31 @@
   color: white;
   border: none;
   cursor: pointer;
+}
+
+@media screen and (max-width: 600px) {
+  .upperPart {
+    flex-direction: column;
+    text-align: center;
+    padding: 12px 16px;
+  }
+
+  .upperPart h1 {
+    font-size: 1.25rem;
+    justify-content: center;
+  }
+
+  .logoutButton {
+    position: static;
+    transform: none;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dashboardContent {
+    padding: 16px 12px 40px;
+    gap: 16px;
+  }
 }
 
 /* Issue Popup Styling */

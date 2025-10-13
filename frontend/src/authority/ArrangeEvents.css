@@ -277,6 +277,48 @@ ol li:hover {
   }
 }
 
+@media screen and (max-width: 600px) {
+  body {
+    padding: 0 8px;
+  }
+
+  .Event-List {
+    width: 100%;
+    margin: 24px auto;
+    padding: 18px;
+    gap: 18px;
+  }
+
+  .header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-row>button,
+  .logout-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-inputs {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-inputs input {
+    font-size: 0.95rem;
+  }
+
+  .add-button {
+    width: 100%;
+  }
+
+  ol li {
+    padding: 14px;
+  }
+}
+
 /* === Status Pills === */
 .status-pill {
   display: inline-block;

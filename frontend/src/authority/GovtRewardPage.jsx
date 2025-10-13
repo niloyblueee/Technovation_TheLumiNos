@@ -95,10 +95,10 @@ const GovtRewardPage = () => {
         <tbody>
           {citizens.map((citizen, index) => (
             <tr key={citizen.id}>
-              <td>{index + 1}</td>
-              <td>{citizen.name}</td>
-              <td>{citizen.points}</td>
-              <td>
+              <td data-header="Rank">{index + 1}</td>
+              <td data-header="Name">{citizen.name}</td>
+              <td data-header="Points">{citizen.points}</td>
+              <td data-header="Action">
                 <button
                   className={styles.inviteButton}
                   onClick={() => handleInvite(citizen)}

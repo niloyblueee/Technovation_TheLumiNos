@@ -345,7 +345,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .dashboardContainer {
     padding: 24px 16px 48px;
   }
@@ -359,6 +359,8 @@
     padding: 18px;
   }
 
+
+
   .brand {
     flex-direction: row;
     align-items: center;
@@ -366,7 +368,8 @@
   }
 
   .topBarActions {
-    width: 50%;
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
   }
@@ -382,7 +385,6 @@
   }
 
   .logout-btn {
-    flex: 1 1 auto;
     padding: 10px 16px;
     font-size: 0.95rem;
   }

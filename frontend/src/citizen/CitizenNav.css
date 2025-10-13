@@ -190,6 +190,41 @@
     }
 }
 
+@media (max-width: 720px) {
+    .citizen-nav {
+        display: grid;
+        gap: .7rem;
+        padding: 1rem 1.1rem;
+
+
+        .nav-links {
+            order: 3;
+            display: grid;
+            border: none;
+            background-color: transparent;
+        }
+
+        .user-info {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.78rem;
+        }
+
+        .logout-btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.78rem;
+            flex: none;
+            width: auto;
+        }
+
+        .profile-section {
+            border: none;
+            justify-self: stretch;
+            justify-content: space-between;
+            background-color: transparent;
+        }
+    }
+}
+
 .citizen-content {
     min-height: calc(100vh - 80px);
 }

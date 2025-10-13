@@ -284,9 +284,9 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 730px) {
   .tp-shell.citizen-content {
-    padding: 120px 16px 72px;
+    padding: 30px 16px 72px;
   }
 
   .tp-stream,

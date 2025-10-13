@@ -324,9 +324,9 @@ body {
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 730px) {
   .app-container.citizen-content {
-    padding: 96px 16px 72px;
+    padding: 30px 16px 72px;
   }
 
   .form-title {
@@ -337,9 +337,7 @@ body {
     padding: 26px;
   }
 
-  .button-group {
-    flex-direction: column;
-  }
+
 
   .map {
     height: 280px;

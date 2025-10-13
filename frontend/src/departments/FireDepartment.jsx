@@ -6,7 +6,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
 import axios from 'axios';
-import { FaArrowRight, FaBurn, FaExclamationTriangle, FaFireExtinguisher, FaRegClock, FaRedo } from 'react-icons/fa';
+import { FaArrowRight, FaBurn, FaExclamationTriangle, FaFireExtinguisher, FaRegClock, FaRedo, FaSignOutAlt } from 'react-icons/fa';
 import styles from './FireDepartment.module.css';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -63,7 +63,7 @@ const MapZoomHandler = ({ onVisibleChange }) => {
 
 const FireDepartment = () => {
     const navigate = useNavigate();
-    const { user, loading } = useAuth();
+    const { user, loading, logout } = useAuth();
     const [activeIssues, setActiveIssues] = useState([]);
     const [resolvedIssues, setResolvedIssues] = useState([]);
     const [selectedIssue, setSelectedIssue] = useState(null);
@@ -135,6 +135,11 @@ const FireDepartment = () => {
         navigate(`/fire/issues/${issueId}`);
     };
 
+    const handleLogout = useCallback(() => {
+        logout();
+        navigate('/auth');
+    }, [logout, navigate]);
+
     if (loading) {
         return (
             <div className={styles.loadingScreen}>
@@ -156,10 +161,16 @@ const FireDepartment = () => {
                     <p className={styles.subtitle}>Rapid Response Command</p>
                     <h1 className={styles.title}>City Fire Intelligence Center</h1>
                 </div>
-                <button className={styles.refreshButton} onClick={fetchIssues} disabled={isLoading}>
-                    <FaRedo />
-                    <span>{isLoading ? 'Refreshing' : 'Refresh Feed'}</span>
-                </button>
+                <div className={styles.headerActions}>
+                    <button className={styles.refreshButton} onClick={fetchIssues} disabled={isLoading}>
+                        <FaRedo />
+                        <span>{isLoading ? 'Refreshing' : 'Refresh Feed'}</span>
+                    </button>
+                    <button className={styles.logoutButton} onClick={handleLogout}>
+                        <FaSignOutAlt />
+                        <span>Logout</span>
+                    </button>
+                </div>
             </motion.header>
 
             <motion.section

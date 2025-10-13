@@ -1,0 +1,318 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: radial-gradient(110% 110% at 50% 0%, rgba(255, 205, 41, 0.18), transparent 60%), #080510;
+    color: #fdfcf7;
+    padding: 32px clamp(16px, 4vw, 48px);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.backButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 239, 138, 0.18);
+    background: rgba(255, 214, 10, 0.14);
+    color: inherit;
+    font-weight: 500;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.backButton:hover {
+    background: rgba(255, 214, 10, 0.28);
+    border-color: rgba(255, 239, 138, 0.32);
+    transform: translateY(-1px);
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 231, 148, 0.24);
+    background: rgba(255, 214, 10, 0.2);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    color: #fff5b5;
+}
+
+.statusResolved {
+    background: rgba(138, 255, 196, 0.18);
+    border-color: rgba(138, 255, 196, 0.5);
+    color: #9affd3;
+}
+
+.statusEmergency {
+    background: rgba(255, 97, 61, 0.28);
+    border-color: rgba(255, 116, 82, 0.52);
+    color: #ffd3c5;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.primaryInfo {
+    background: linear-gradient(150deg, rgba(18, 18, 34, 0.92), rgba(8, 8, 18, 0.9));
+    border-radius: 24px;
+    padding: clamp(20px, 4vw, 32px);
+    box-shadow: 0 28px 72px rgba(6, 5, 16, 0.5);
+    border: 1px solid rgba(255, 231, 148, 0.16);
+}
+
+.primaryInfo h1 {
+    font-size: clamp(28px, 4vw, 36px);
+    font-weight: 650;
+    margin-bottom: 12px;
+    color: #fff4ad;
+}
+
+.description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255, 248, 199, 0.84);
+    margin-bottom: 24px;
+}
+
+.metaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.metaLabel {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 245, 196, 0.6);
+    margin-bottom: 6px;
+}
+
+.metaValue {
+    font-size: 15px;
+    color: #fff7bf;
+    font-weight: 500;
+}
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 24px;
+}
+
+.mapSection,
+.mediaSection {
+    background: linear-gradient(160deg, rgba(15, 16, 30, 0.92), rgba(6, 6, 16, 0.9));
+    border-radius: 22px;
+    padding: 24px;
+    border: 1px solid rgba(255, 231, 148, 0.2);
+    box-shadow: 0 22px 66px rgba(5, 4, 16, 0.48);
+}
+
+.mapSection h2,
+.mediaSection h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    margin-bottom: 18px;
+    color: #fff4ad;
+}
+
+.mapContainer {
+    height: clamp(260px, 35vh, 380px);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.noMap {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: rgba(255, 248, 199, 0.6);
+    background: rgba(10, 10, 20, 0.6);
+    border: 1px dashed rgba(255, 231, 148, 0.32);
+    border-radius: 18px;
+}
+
+.photoFrame {
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(6, 6, 16, 0.6);
+    border: 1px solid rgba(255, 231, 148, 0.2);
+}
+
+.photoFrame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.relatedSection {
+    background: linear-gradient(155deg, rgba(12, 12, 24, 0.92), rgba(6, 6, 16, 0.9));
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid rgba(255, 224, 138, 0.18);
+    box-shadow: 0 24px 60px rgba(5, 4, 16, 0.46);
+}
+
+.relatedSection h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #fff4ad;
+}
+
+.relatedGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.relatedCard {
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(10, 10, 22, 0.7);
+    border: 1px solid rgba(255, 228, 150, 0.2);
+    box-shadow: inset 0 0 32px rgba(5, 4, 16, 0.42);
+}
+
+.relatedId {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255, 214, 10, 0.24);
+    color: #fff2a3;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.relatedCard p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(255, 248, 199, 0.82);
+    margin-bottom: 12px;
+}
+
+.relatedCard span {
+    font-size: 12px;
+    color: rgba(255, 245, 196, 0.6);
+}
+
+.footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 32px;
+}
+
+.resolveButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(120deg, rgba(255, 214, 10, 0.92), rgba(255, 176, 46, 0.92));
+    color: #1a1405;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 18px 35px rgba(255, 200, 64, 0.32);
+}
+
+.resolveButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 45px rgba(255, 200, 64, 0.45);
+}
+
+.resolveButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.loadingScreen,
+.errorScreen {
+    min-height: 60vh;
+    display: grid;
+    place-items: center;
+    gap: 16px;
+    text-align: center;
+    color: rgba(255, 245, 196, 0.82);
+}
+
+.spinner {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: rgba(255, 214, 10, 0.85);
+    animation: spin 1s linear infinite;
+}
+
+.errorScreen button {
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: rgba(255, 214, 10, 0.18);
+    border: 1px solid rgba(255, 231, 148, 0.28);
+    color: #fff2a3;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.errorScreen button:hover {
+    background: rgba(255, 214, 10, 0.3);
+    transform: translateY(-1px);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 960px) {
+    .contentGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .wrapper {
+        padding: 24px 16px;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .footer {
+        justify-content: stretch;
+    }
+
+    .resolveButton {
+        width: 100%;
+        justify-content: center;
+    }
+}

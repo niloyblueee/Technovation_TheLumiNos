@@ -28,6 +28,7 @@ import PoliceIssueDetails from './departments/PoliceIssueDetails.jsx';
 import FireIssueDetails from './departments/FireIssueDetails.jsx';
 import HealthIssueDetails from './departments/HealthIssueDetails.jsx';
 import WaterIssueDetails from './departments/WaterIssueDetails.jsx';
+import ElectricityIssueDetails from './departments/ElectricityIssueDetails.jsx';
 
 
 // Protected Route component
@@ -269,6 +270,14 @@ function App() {
                 element={
                   <RoleProtectedRoute allowedRoles={['electricity']}>
                     <ElectricityDepartment />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/electricity/issues/:id"
+                element={
+                  <RoleProtectedRoute allowedRoles={['electricity']}>
+                    <ElectricityIssueDetails />
                   </RoleProtectedRoute>
                 }
               />

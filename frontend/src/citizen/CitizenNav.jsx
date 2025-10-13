@@ -53,7 +53,14 @@ const CitizenNav = () => {
                 >
                     {userDisplayName}
                 </button>
-                <button onClick={logout} className="logout-btn">
+                <button
+                    type="button"
+                    onClick={() => {
+                        logout();
+                        navigate('/auth', { replace: true });
+                    }}
+                    className="logout-btn"
+                >
                     Logout
                 </button>
             </div>

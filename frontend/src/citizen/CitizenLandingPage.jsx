@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import './CitizenLandingPage.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +11,9 @@ function CitizenLandingPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [issues, setIssues] = useState([]);
+  const [issuesLoading, setIssuesLoading] = useState(false);
+  const [issuesError, setIssuesError] = useState(null);
   const wrapperRef = useRef(null);
   const fetchedRef = useRef(false);
 
@@ -80,6 +83,69 @@ function CitizenLandingPage() {
       // ignore storage errors
     }
   };
+
+  useEffect(() => {
+    const phone = user?.phone_number;
+    if (!phone) {
+      setIssues([]);
+      setIssuesLoading(false);
+      setIssuesError(null);
+      return;
+    }
+
+    let mounted = true;
+    const controller = new AbortController();
+
+    async function loadIssues() {
+      setIssuesLoading(true);
+      setIssuesError(null);
+      try {
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const url = `${base.replace(/\/$/, '')}/api/issues`;
+        const res = await fetch(url, { signal: controller.signal, credentials: 'include' });
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const data = await res.json();
+        if (!mounted) return;
+        const arr = Array.isArray(data) ? data : [];
+        const phoneKey = String(phone);
+        const mine = arr
+          .filter(i => String(i.phone_number || '') === phoneKey)
+          .sort((a, b) => (b.id || 0) - (a.id || 0));
+        const mapped = mine.map(i => {
+          const rawStatus = (i.status || '').toLowerCase();
+          let statusLabel = 'Pending';
+          if (rawStatus.includes('progress') || rawStatus.includes('in_progress') || rawStatus.includes('in-progress')) statusLabel = 'In Progress';
+          else if (rawStatus.includes('resolve') || rawStatus.includes('complete')) statusLabel = 'Completed';
+          else if (rawStatus.includes('reject')) statusLabel = 'Rejected';
+          return { id: i.id, status: statusLabel };
+        });
+        setIssues(mapped);
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        if (mounted) setIssuesError(err.message || 'Failed to load reports');
+      } finally {
+        if (mounted) setIssuesLoading(false);
+      }
+    }
+
+    loadIssues();
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+  }, [user?.phone_number]);
+
+  const issueSummary = useMemo(() => {
+    const summary = { total: issues.length, pending: 0, progress: 0, completed: 0, rejected: 0 };
+    issues.forEach((issue) => {
+      const status = (issue.status || '').toLowerCase();
+      if (status.includes('progress')) summary.progress += 1;
+      else if (status.includes('complete')) summary.completed += 1;
+      else if (status.includes('reject')) summary.rejected += 1;
+      else summary.pending += 1;
+    });
+    return summary;
+  }, [issues]);
 
   if (!user) {
     return (
@@ -187,17 +253,25 @@ function CitizenLandingPage() {
         <div className="stats-grid">
           <div className="stat-card">
             <h3>Total Reports</h3>
-            <p>{notifications.length || 0}</p>
+            <p>{issuesLoading ? 'Loading...' : issueSummary.total}</p>
           </div>
           <div className="stat-card">
             <h3>Pending Issues</h3>
-            <p>{notifications.filter(n => !n.read).length || 0}</p>
+            <p>{issuesLoading ? 'Loading...' : issueSummary.pending}</p>
           </div>
           <div className="stat-card">
-            <h3>Reward Points</h3>
-            <p>{user?.reward_points ?? 0}</p>
+            <h3>In Progress</h3>
+            <p>{issuesLoading ? 'Loading...' : issueSummary.progress}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Completed</h3>
+            <p>{issuesLoading ? 'Loading...' : issueSummary.completed}</p>
           </div>
         </div>
+
+        {issuesError && (
+          <div className="citizen-stats-error">Unable to load your reports: {issuesError}</div>
+        )}
 
         <div className="button-row">
           <button className="TrackProgress" onClick={() => navigate('/trackprogress')}>

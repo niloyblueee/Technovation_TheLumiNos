@@ -53,7 +53,7 @@ const AuthPage = () => {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.2 }}
                         >
-                            Technovation
+                            VisionX
                             <span className="title-accent">TheLumiNos</span>
                         </motion.h1>
                         <motion.p

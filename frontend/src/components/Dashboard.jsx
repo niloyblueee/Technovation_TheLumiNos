@@ -40,7 +40,7 @@ const Dashboard = () => {
                             <div className="welcome-header">
                                 <h1 className="welcome-title">
                                     <span className="welcome-icon">🏛️</span>
-                                    Welcome to Technovation TheLumiNos!
+                                    Welcome to VisionX TheLumiNos!
                                 </h1>
                                 <p className="welcome-subtitle">
                                     Connecting Citizens with Government Authorities for SDG11
@@ -123,7 +123,7 @@ const Dashboard = () => {
             {/* Sidebar */}
             <div className={`sidebar ${activeFeature === 'mobile-menu' ? 'sidebar-open' : ''}`}>
                 <div className="sidebar-header">
-                    <h2>Technovation</h2>
+                    <h2>VisionX</h2>
                     <p>TheLumiNos</p>
                 </div>
 

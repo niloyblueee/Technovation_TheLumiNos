@@ -8,22 +8,26 @@
         "dev": "nodemon server.js",
         "setup-db": "node setup-db.js",
         "reset-db": "node reset-db.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "backup": "node DB_BACKUP/backup_express.js --dump-file=DB_BACKUP/mybackup.sql",
+        "restore": "node DB_BACKUP/restore.js --file=DB_BACKUP/mybackup.sql"
     },
     "dependencies": {
-        "express": "^4.18.2",
-        "cors": "^2.8.5",
-        "mysql2": "^3.6.0",
-        "bcryptjs": "^2.4.3",
-        "jsonwebtoken": "^9.0.2",
-        "google-auth-library": "^9.4.0",
-        "express-validator": "^7.0.1",
-        "multer": "^1.4.5-lts.1",
-        "dotenv": "^16.3.1",
         "axios": "^1.7.7",
-        "helmet": "^7.1.0",
+        "bcryptjs": "^2.4.3",
         "compression": "^1.7.4",
-        "express-rate-limit": "^7.4.0"
+        "cors": "^2.8.5",
+        "dotenv": "^16.6.1",
+        "express": "^4.21.2",
+        "express-rate-limit": "^7.4.0",
+        "express-validator": "^7.0.1",
+        "google-auth-library": "^9.4.0",
+        "helmet": "^7.1.0",
+        "jsonwebtoken": "^9.0.2",
+        "multer": "^1.4.5-lts.1",
+        "mysql2": "^3.6.0",
+        "mysqldump": "^3.2.0",
+        "yargs": "^18.0.0"
     },
     "devDependencies": {
         "nodemon": "^3.0.1"

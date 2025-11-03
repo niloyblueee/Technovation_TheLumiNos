@@ -30,17 +30,30 @@ npm run restore
 
 
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const fs = require('fs');
-const path = require('path');
+const dotenv = require('dotenv');
 const { URL } = require('url');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const argv = yargs(hideBin(process.argv)).argv;
 const mysql = require('mysql2/promise');
 
+const envCandidates = [
+  path.resolve(__dirname, '../.env'),
+  path.resolve(__dirname, '../env'),
+  path.resolve(__dirname, '../../.env'),
+  path.resolve(__dirname, '../../env'),
+];
+
+const loadedEnvPath = envCandidates.find((candidate) => fs.existsSync(candidate));
+if (loadedEnvPath) {
+  dotenv.config({ path: loadedEnvPath });
+} else {
+  dotenv.config();
+}
+
 function getConnFromEnv() {
-  const mysqlUrl = process.env.MYSQL_URL || process.env.RAILWAY_MYSQL_URL || process.env.CLEARDB_DATABASE_URL;
+  const mysqlUrl = process.env.MYSQL_URL || process.env.RAILWAY_MYSQL_URL || process.env.CLEARDB_DATABASE_URL || process.env.DB_URL;
   if (mysqlUrl) {
     const u = new URL(mysqlUrl);
     const user = decodeURIComponent(u.username || '');
@@ -76,6 +89,10 @@ async function restoreDump(connInfo, dumpFile) {
   });
 
   try {
+    if (connInfo.db) {
+      await connection.query('CREATE DATABASE IF NOT EXISTS ??', [connInfo.db]);
+      await connection.query('USE ??', [connInfo.db]);
+    }
     console.log('Executing dump (may take some time)...');
     // execute all statements in one go; for large dumps you may want to stream
     await connection.query(sql);

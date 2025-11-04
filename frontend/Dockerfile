@@ -4,12 +4,12 @@
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 
-ENV NODE_ENV=production
-
 COPY frontend/package*.json ./
+# Ensure devDependencies (e.g., vite) are installed for the build
+ENV NPM_CONFIG_PRODUCTION=false
 RUN npm ci
 
-COPY . .
+COPY frontend/ .
 RUN npm run build
 
 # Runtime stage
@@ -22,6 +22,7 @@ RUN npm install -g serve \
 
 COPY --from=build /app/dist ./dist
 
+ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=5173
 EXPOSE 5173

@@ -6,10 +6,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Install backend dependencies with the minimal toolchain required for native modules
-COPY package*.json ./
+# Copy manifests first to leverage Docker layer caching
+COPY package.json ./
+COPY package-lock.json ./
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 build-essential \
-    && npm ci --omit=dev \
+    # Prefer reproducible installs when lockfile is present; fall back otherwise
+    && if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi \
     && npm cache clean --force \
     && apt-get purge -y --auto-remove python3 build-essential \
     && rm -rf /var/lib/apt/lists/*

@@ -7,8 +7,8 @@ ENV NODE_ENV=production
 
 # Install backend dependencies with the minimal toolchain required for native modules
 # Copy manifests first to leverage Docker layer caching
-COPY package.json ./
-COPY package-lock.json ./
+COPY backend/package.json ./
+COPY backend/package-lock.json ./
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 build-essential \
     # Prefer reproducible installs when lockfile is present; fall back otherwise

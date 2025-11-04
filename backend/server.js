@@ -22,10 +22,49 @@ if (process.env.OPENAI_API_KEY) {
 }
 
 // Middleware
-app.use(cors({
+
+/*app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
-}));
+}));*/
+
+// Robust CORS: allow multiple origins via FRONTEND_URLS (comma-separated) or single FRONTEND_URL
+const parseAllowedOrigins = () => {
+    const urlsEnv = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '';
+    const list = urlsEnv
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(u => u.replace(/\/$/, ''));
+    // Sensible defaults for local and known prod URL (can be overridden via env)
+    const defaults = [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'https://civicai-frontend-production.up.railway.app'
+    ];
+    const all = [...new Set([...list, ...defaults])];
+    return all;
+};
+
+const allowedOrigins = parseAllowedOrigins();
+console.log('🔐 CORS allowed origins:', allowedOrigins);
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow non-browser requests (no origin) and whitelisted origins
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/$/, '');
+        if (allowedOrigins.includes(cleanOrigin)) return callback(null, true);
+        return callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+// Explicitly enable preflight for all routes
+app.options('*', cors(corsOptions));
 app.use(helmet());
 app.use(compression());
 // reasonable default limits

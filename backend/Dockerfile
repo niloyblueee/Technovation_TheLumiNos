@@ -17,8 +17,8 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove python3 build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy application source
-COPY . .
+# Copy only backend application source (works even if build context is repo root)
+COPY backend/ .
 
 # Railway injects PORT; default to 5000 for local usage
 EXPOSE 5000

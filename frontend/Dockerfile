@@ -6,7 +6,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package*.json ./
+COPY frontend/package*.json ./
 RUN npm ci
 
 COPY . .
@@ -23,7 +23,7 @@ RUN npm install -g serve \
 COPY --from=build /app/dist ./dist
 
 ENV HOST=0.0.0.0
-ENV PORT=4173
-EXPOSE 4173
+ENV PORT=5173
+EXPOSE 5173
 
-CMD ["sh", "-c", "serve -s dist -l ${PORT:-4173}"]
+CMD ["sh", "-c", "serve -s dist -l ${PORT:-5173}"]

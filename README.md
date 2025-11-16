@@ -1,5 +1,5 @@
 # VisionX (NATIONAL INNOVATION CHALLENGE 2025)
-**NATIONAL INNOVATION CHALLENGE 2025 SELECTED PROJECT FOR THE FINALIST**
+**Finalist project of the National Innovation Challenge 2025**
 
 
 A comprehensive civic engagement platform built with React (Vite) and Node.js, enabling citizens to report issues, government authorities to manage and resolve problems, and departments to track and address community concerns efficiently.
